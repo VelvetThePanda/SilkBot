@@ -6,7 +6,6 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Silk.Core.Database;
-using Silk.Core.Database.Models;
 using Silk.Extensions;
 
 namespace Silk.Core.Commands.Miscellaneous
@@ -31,7 +30,7 @@ namespace Silk.Core.Commands.Miscellaneous
             }
 
             DiscordEmbed embed = BuildChangeLog(db.ChangeLogs.OrderBy(c => c.ChangeTime).Last());
-            await ctx.RespondAsync(embed: embed);
+            await ctx.RespondAsync(embed);
         }
 
         // [Command("Create")]
@@ -40,7 +39,7 @@ namespace Silk.Core.Commands.Miscellaneous
         //     Changelog changelog = CreateChangelog(options);
         //     var db = new Lazy<SilkDbContext>(() => _dbFactory.CreateDbContext());
         //     DiscordMessage clMessage =
-        //         await ctx.RespondAsync("Does this look correct?", embed: BuildChangeLog(changelog));
+        //         await ctx.RespondAsync("Does this look correct?", BuildChangeLog(changelog));
         //     bool embedAccepted = await CheckConfirmationAsync(ctx, clMessage);
         //     if (embedAccepted)
         //     {
@@ -89,7 +88,7 @@ namespace Silk.Core.Commands.Miscellaneous
             public string Version { get; set; }
             public DateTime Time { get; set; }
 
-            public ChangelogModel ToModel()
+            public Database.Models.Changelog ToModel()
             {
                 return new()
                 {
@@ -115,7 +114,7 @@ namespace Silk.Core.Commands.Miscellaneous
             return embed;
         }
 
-        private static DiscordEmbed BuildChangeLog(ChangelogModel cl)
+        private static DiscordEmbed BuildChangeLog(Database.Models.Changelog cl)
         {
             var embed = new DiscordEmbedBuilder();
             embed

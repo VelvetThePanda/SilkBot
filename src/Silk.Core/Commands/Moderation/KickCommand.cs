@@ -32,10 +32,12 @@ namespace Silk.Core.Commands.Moderation
         {
             DiscordMember bot = ctx.Guild.CurrentMember;
 
+            
+
             if (user.IsAbove(bot) || ctx.User == user)
             {
-                DiscordEmbed embed = await this.CreateHeiarchyEmbedAsync(ctx, bot, user);
-                await ctx.RespondAsync(embed: embed).ConfigureAwait(false);
+                DiscordEmbed embed = await this.CreateHierarchyEmbedAsync(ctx, bot, user);
+                await ctx.RespondAsync(embed).ConfigureAwait(false);
             }
             else
             {
@@ -47,12 +49,12 @@ namespace Silk.Core.Commands.Moderation
                     .AddField("Reason:", reason);
 
 
-                UserModel databaseUser = await _dbService.GetOrCreateUserAsync(ctx.Guild.Id, user.Id);
-                UserInfractionModel infraction = await _infractionService.CreateInfractionAsync(user, ctx.Member, InfractionType.Kick, reason!);
+                User databaseUser = await _dbService.GetOrCreateGuildUserAsync(ctx.Guild.Id, user.Id);
+                Infraction infraction = await _infractionService.CreateInfractionAsync(user, ctx.Member, InfractionType.Kick, reason!);
                 string messaged;
                 try
                 {
-                    await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
+                    await user.SendMessageAsync(embed).ConfigureAwait(false);
                     messaged = "(User notified with Direct message)";
                 }
                 catch (InvalidOperationException)
@@ -70,7 +72,7 @@ namespace Silk.Core.Commands.Moderation
             }
         }
 
-        private async Task<DiscordEmbedBuilder> CreateHeiarchyEmbedAsync(CommandContext ctx, DiscordMember bot, DiscordMember user)
+        private async Task<DiscordEmbedBuilder> CreateHierarchyEmbedAsync(CommandContext ctx, DiscordMember bot, DiscordMember user)
         {
             bool isBot = user == bot;
             bool isOwner = user == ctx.Guild.Owner;

@@ -20,9 +20,10 @@ namespace Silk.Core.Commands.Miscellaneous
             _logger = logger;
         }
 
-        [Command("nickname")]
         [RequireFlag(UserFlag.Staff)]
+        [Command("nickname")]
         [Aliases("nick")]
+        [Description("Set your nickname on the current Guild")]
         public async Task SetNickName(CommandContext ctx, DiscordMember target, [RemainingText] string nick)
         {
             await ctx.Message.DeleteAsync();
@@ -30,7 +31,7 @@ namespace Silk.Core.Commands.Miscellaneous
             {
                 await ctx.RespondAsync("Nickname out of bounds! Limit: 32 characters");
                 return;
-            } // https://velvet.is-ne.at/ISrlCh.png
+            }
 
             try
             {
@@ -39,8 +40,7 @@ namespace Silk.Core.Commands.Miscellaneous
             catch (Exception)
             {
                 await ctx.RespondAsync("Could not set nickname!");
-                _logger.LogWarning(
-                    $"Attempted to modify {target.Username} ({target.Nickname} -> {nick}), but an exception was thrown.");
+                _logger.LogWarning($"Attempted to modify {target.Username} ({target.Nickname} -> {nick}), but an exception was thrown.");
             }
         }
     }

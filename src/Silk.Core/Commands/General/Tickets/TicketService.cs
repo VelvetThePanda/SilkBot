@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
@@ -54,7 +53,7 @@ namespace Silk.Core.Commands.General.Tickets
             _logger.LogDebug($"Created ticket for {user.Username}#{user.Discriminator}.");
 
             // Database section. //
-            var ticket = new TicketModel {IsOpen = true, Opened = DateTime.Now, Opener = user.Id};
+            var ticket = new Ticket {IsOpen = true, Opened = DateTime.Now, Opener = user.Id};
             await AddHistoryAsync(message, user.Id, ticket);
             await db.Tickets.AddAsync(ticket);
             await db.SaveChangesAsync();
@@ -82,9 +81,9 @@ namespace Silk.Core.Commands.General.Tickets
         /// <param name="user">The user that sent the message</param>
         /// <param name="ticket">The ticket to attach the message to</param>
         /// <returns></returns>
-        public async Task AddHistoryAsync(string message, ulong user, TicketModel ticket)
+        public async Task AddHistoryAsync(string message, ulong user, Ticket ticket)
         {
-            ticket.History.Add(new TicketMessageHistoryModel {Message = message, Sender = user, TicketModel = ticket});
+            ticket.History.Add(new TicketMessage {Message = message, Sender = user, Ticket = ticket});
             await using var db = _dbFactory.CreateDbContext();
             db.Attach(ticket);
             await db.SaveChangesAsync();
@@ -105,7 +104,7 @@ namespace Silk.Core.Commands.General.Tickets
             {
                 ulong userId = GetTicketUser(message.Channel);
                 await using SilkDbContext db = _dbFactory.CreateDbContext();
-                TicketModel ticket = await GetTicketAsync(userId, db);
+                Ticket ticket = await GetTicketAsync(userId, db);
                 ticket.Closed = DateTime.Now;
                 ticket.IsOpen = false;
                 await message.Channel.DeleteAsync();
@@ -127,7 +126,7 @@ namespace Silk.Core.Commands.General.Tickets
         public async Task CloseTicket(ulong id)
         {
             if (!IsOpenTicket(id)) throw new InvalidOperationException("Not a ticket channel!");
-            TicketModel ticket = await GetTicketAsync(id);
+            Ticket ticket = await GetTicketAsync(id);
             ticket.Closed = DateTime.Now;
             ticket.IsOpen = false;
             DiscordChannel ticketCategory = await GetOrCreateTicketCategoryAsync();
@@ -142,13 +141,13 @@ namespace Silk.Core.Commands.General.Tickets
         }
 
 
-        public async Task<TicketModel> GetTicketAsync(ulong id)
+        public async Task<Ticket> GetTicketAsync(ulong id)
         {
             SilkDbContext db = _dbFactory.CreateDbContext();
             return await db.Tickets.FirstOrDefaultAsync(t => t.IsOpen && t.Opener == id);
         }
 
-        public async Task<TicketModel> GetTicketAsync(ulong id, SilkDbContext dbContext) => await dbContext.Tickets.FirstOrDefaultAsync(t => t.IsOpen && t.Opener == id);
+        public async Task<Ticket> GetTicketAsync(ulong id, SilkDbContext dbContext) => await dbContext.Tickets.FirstOrDefaultAsync(t => t.IsOpen && t.Opener == id);
 
         /// <summary>
         /// Get a <see cref="DiscordUser"/>'s Id from the corresponding ticket channel.
@@ -178,7 +177,7 @@ namespace Silk.Core.Commands.General.Tickets
 
             SilkDbContext db = _dbFactory.CreateDbContext();
 
-            TicketModel? ticket = await db.Tickets
+            Ticket? ticket = await db.Tickets
                 .Where(t => t.IsOpen)
                 .OrderBy(t => t.Opened)
                 .LastOrDefaultAsync(t => t.Opener == id);

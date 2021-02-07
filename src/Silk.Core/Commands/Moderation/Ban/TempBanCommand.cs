@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Silk.Core.Commands.Moderation.Utilities;
 using Silk.Core.Database;
 using Silk.Core.Database.Models;
-using Silk.Core.Tools;
 using Silk.Core.Utilities;
 using Silk.Extensions;
 using Silk.Extensions.DSharpPlus;
@@ -21,22 +20,22 @@ namespace Silk.Core.Commands.Moderation.Ban
     public class TempBanCommand : BaseCommandModule
     {
         //TODO: Clean this up
+        //TODO: REALLY Clean this up. It's disgusting. ~Velvet
         public IDbContextFactory<SilkDbContext> DbFactory { private get; set; }
-        public TimedEventService EventService { private get; set; }
         public DiscordClient Client { private get; set; }
 
         private const string defaultFormat = "$mention was $action from the guild for $duration for $reason";
 
         [Command("tempban")]
         [RequireGuild]
+        [Description("Temporarily ban a member from the Guild")]
         public async Task TempBan(
-            CommandContext ctx, DiscordMember user, string duration,
+            CommandContext ctx, DiscordMember user, TimeSpan duration,
             [RemainingText] string reason = "Not provided.")
         {
             SilkDbContext db = DbFactory.CreateDbContext();
             DiscordMember bot = ctx.Guild.CurrentMember;
             DateTime now = DateTime.Now;
-            TimeSpan banDuration = GetTimeFromInput(duration);
             BanFailureReason? banFailed = CanBan(bot, ctx.Member, user);
             DiscordEmbedBuilder embed =
                 new DiscordEmbedBuilder().WithAuthor(bot.Username, ctx.GetBotUrl(), ctx.Client.CurrentUser.AvatarUrl);
@@ -49,22 +48,21 @@ namespace Silk.Core.Commands.Moderation.Ban
             {
                 DiscordEmbedBuilder banEmbed = new DiscordEmbedBuilder()
                     .WithAuthor(ctx.User.Username, ctx.User.GetUrl(), ctx.User.AvatarUrl)
-                    .WithDescription(
-                        $"You've been temporarily banned from {ctx.Guild.Name} for {duration} days.")
+                    .WithDescription($"You've been temporarily banned from {ctx.Guild.Name} for {duration.TotalDays} days.")
                     .AddField("Reason:", reason);
 
-                await user.SendMessageAsync(embed: banEmbed);
+                await user.SendMessageAsync(banEmbed);
                 await ctx.Guild.BanMemberAsync(user, 0, reason);
-                GuildModel guild = db.Guilds.First(g => g.Id == ctx.Guild.Id);
+                Guild guild = db.Guilds.First(g => g.Id == ctx.Guild.Id);
 
-                UserModel? bannedUser = db.Users.FirstOrDefault(u => u.Id == user.Id);
+                User? bannedUser = db.Users.FirstOrDefault(u => u.Id == user.Id);
                 string formattedBanReason = InfractionFormatHandler.ParseInfractionFormat("temporarily banned",
-                    banDuration.TotalDays + " days", user.Mention, reason, guild.Configuration.InfractionFormat ?? defaultFormat);
-                UserInfractionModel infraction = CreateInfraction(formattedBanReason, ctx.User.Id, now);
+                    duration.TotalDays + " days", user.Mention, reason, guild.Configuration.InfractionFormat ?? defaultFormat);
+                Infraction infraction = CreateInfraction(formattedBanReason, ctx.User.Id, now);
                 if (bannedUser is null)
                 {
-                    bannedUser = new UserModel
-                        {Infractions = new List<UserInfractionModel>()};
+                    bannedUser = new User
+                        {Infractions = new List<Infraction>()};
                     db.Users.Add(bannedUser);
                     bannedUser.Infractions.Add(infraction);
                 }
@@ -73,11 +71,11 @@ namespace Silk.Core.Commands.Moderation.Ban
                 {
                     embed.WithDescription(formattedBanReason);
                     embed.WithColor(DiscordColor.Green);
-                    await ctx.Guild.GetChannel(guild.Configuration.GeneralLoggingChannel).SendMessageAsync(embed: embed);
+                    await ctx.Guild.GetChannel(guild.Configuration.GeneralLoggingChannel).SendMessageAsync(embed);
                 }
 
-                EventService.Events.Add(new TimedInfraction(user.Id, ctx.Guild.Id, DateTime.Now.Add(banDuration),
-                    reason, e => _ = OnBanExpiration((TimedInfraction) e)));
+                // EventService.Events.Add(new TimedInfraction(user.Id, ctx.Guild.Id, DateTime.Now.Add(banDuration),
+                //     reason, e => _ = OnBanExpiration((TimedInfraction) e)));
             }
         }
 
@@ -87,10 +85,10 @@ namespace Silk.Core.Commands.Moderation.Ban
         {
             embed.WithDescription(reason.FailureReason.Replace("$user", user.Mention));
             embed.WithColor(DiscordColor.Red);
-            await ctx.RespondAsync(embed: embed);
+            await ctx.RespondAsync(embed);
         }
 
-        private static UserInfractionModel CreateInfraction(string reason, ulong enforcerId, DateTime infractionTime)
+        private static Infraction CreateInfraction(string reason, ulong enforcerId, DateTime infractionTime)
         {
             return new()
             {
@@ -132,24 +130,6 @@ namespace Silk.Core.Commands.Moderation.Ban
                 throw new InvalidOperationException("Couldn't determine duration from message!")
                 : throw new InvalidOperationException("Couldn't determine duration from message!");
         }
-
-
-        private async Task OnBanExpiration(TimedInfraction eventObject)
-        {
-            SilkDbContext db = DbFactory.CreateDbContext();
-            GuildModel guild = db.Guilds.First(g => g.Id == eventObject.Guild);
-            if (guild.Configuration.GeneralLoggingChannel != default)
-            {
-                DiscordChannel c =
-                    (await Client.GetGuildAsync(eventObject.Guild)).GetChannel(guild.Configuration.GeneralLoggingChannel);
-                DiscordUser u = await Client.GetUserAsync(eventObject.Id);
-                DiscordEmbedBuilder embed = new DiscordEmbedBuilder().WithDescription($"{u.Mention}'s ban has expired.")
-                    .WithColor(DiscordColor.PhthaloGreen)
-                    .WithThumbnail(u.AvatarUrl);
-            }
-
-            await (await Client.GetGuildAsync(eventObject.Guild)).UnbanMemberAsync(eventObject.Id,
-                "Temporary ban completed.");
-        }
+        
     }
 }

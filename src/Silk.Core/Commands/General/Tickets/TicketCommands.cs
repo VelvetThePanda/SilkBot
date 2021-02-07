@@ -11,7 +11,7 @@ namespace Silk.Core.Commands.General.Tickets
     /// <summary>
     /// Class responsible for the creation of tickets.
     /// </summary>
-    [Expiremental]
+    [Experimental]
     [Group("ticket")]
     [Category(Categories.Bot)]
     [Description("Commands related to tickets; opening tickets can only be performed in DMs.")]
@@ -22,6 +22,7 @@ namespace Silk.Core.Commands.General.Tickets
 
         [Command]
         [RequireDirectMessage]
+        [Description("Open a ticket for an issue, bug or other reason.")]
         public async Task Create(CommandContext ctx, string message = "No message provided")
         {
             TicketCreationResult? result = await _ticketService.CreateAsync(ctx.User, message).ConfigureAwait(false);
@@ -30,11 +31,11 @@ namespace Silk.Core.Commands.General.Tickets
                 await ctx.RespondAsync(result.Reason).ConfigureAwait(false);
                 return;
             }
-            TicketModel ticket = result.Ticket;
+            Ticket ticket = result.Ticket;
             ulong channelId = TicketService.GetTicketChannel(ticket!.Opener); // If it succeeded, it's not null. //
             DiscordChannel ticketChannel = ctx.Client.Guilds[721518523704410202].GetChannel(channelId);
             DiscordEmbed embed = TicketEmbedHelper.GenerateInboundEmbed(message, ctx.User, ticket);
-            await ticketChannel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+            await ticketChannel.SendMessageAsync(embed).ConfigureAwait(false);
         }
 
         [Command]

@@ -1,14 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 using Silk.Core.Commands.General.Tickets;
 using Silk.Core.Services;
 
@@ -18,11 +16,12 @@ namespace Silk.Core.Tools.EventHelpers
     {
         private readonly TicketService _ticketService;
         private readonly PrefixCacheService _prefixCache;
-
-        public MessageAddedHandler(TicketService ticketService, PrefixCacheService prefixCache)
+        private readonly ILogger<MessageAddedHandler> _logger;
+        public MessageAddedHandler(TicketService ticketService, PrefixCacheService prefixCache, ILogger<MessageAddedHandler> logger)
         {
             _ticketService = ticketService;
             _prefixCache = prefixCache;
+            _logger = logger;
         }
 
         public Task Tickets(DiscordClient c, MessageCreateEventArgs e)
@@ -61,7 +60,7 @@ namespace Silk.Core.Tools.EventHelpers
                 if (e.Author.IsBot || string.IsNullOrEmpty(e.Message.Content)) return;
                 CommandsNextExtension cnext = c.GetCommandsNext();
 
-                string prefix = _prefixCache.RetrievePrefix(e.Guild?.Id);
+                string prefix = _prefixCache.RetrievePrefix(e?.Guild?.Id);
                 
                 int prefixLength = 
                     e.Channel.IsPrivate ? 0 : // No prefix in DMs, else try to get the string prefix length. //
@@ -76,14 +75,13 @@ namespace Silk.Core.Tools.EventHelpers
                 Command? command = cnext.FindCommand(commandString, out string arguments);
 
                 if (command is null)
-                    throw new CommandNotFoundException(e.Message.Content);
-                // {
-                //     Log.Logger.Warning($"Command not found: {commandString}");
-                //     return;
-                // }
+                {
+                    _logger.LogWarning($"Command not found: {e.Message.Content}");
+                    return;
+                }
                 CommandContext context = cnext.CreateContext(e.Message, prefix, command, arguments);
 
-                await cnext.ExecuteCommandAsync(context);
+                await cnext.ExecuteCommandAsync(context).ConfigureAwait(false);
             });
             return Task.CompletedTask;
         }

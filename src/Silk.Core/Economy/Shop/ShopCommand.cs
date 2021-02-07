@@ -6,7 +6,8 @@ using Silk.Core.Utilities;
 namespace Silk.Core.Economy.Shop
 {
     [Category(Categories.Economy)]
-    [Expiremental]
+    [Experimental]
+    [Hidden]
     [Group("shop")]
     public partial class ShopCommand : BaseCommandModule
     {
@@ -20,6 +21,7 @@ namespace Silk.Core.Economy.Shop
 
     public partial class ShopCommand
     {
+        
         [Command]
         public async Task Global(CommandContext ctx)
         {
