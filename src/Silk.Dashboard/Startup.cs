@@ -1,10 +1,10 @@
+using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Silk.Dashboard.Helpers;
 using Silk.Dashboard.Services.Concretions;
 using Silk.Dashboard.Services.Contracts;
 
@@ -37,21 +37,21 @@ namespace Silk.Dashboard
                 {
                     opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                    opt.DefaultChallengeScheme = DiscordConfiguration.AuthenticationScheme;
+                    opt.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
                 })
-                .AddCookie()
                 .AddDiscord(opt =>
                 {
                     opt.ClientId = Configuration["Discord:AppId"];
                     opt.ClientSecret = Configuration["Discord:AppSecret"];
                     
-                    opt.CallbackPath = DiscordConfiguration.OAuth2CallbackPath;
+                    opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
                     
                     opt.Scope.Add("guilds");
 
                     // Required for accessing the oauth2 token in order to make requests on the user's behalf, ie. accessing the user's guild list
                     opt.SaveTokens = true;
-                });
+                })
+                .AddCookie();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

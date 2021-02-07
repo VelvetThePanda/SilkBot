@@ -1,0 +1,36 @@
+﻿@using Silk.Dashboard.Models.Discord
+
+<div class="card-columns">
+    @foreach (var guild in Guilds)
+    {
+        <div class="card border-info mb-3" style="max-width: 20rem;">
+            <div class="card-body">
+                <h4 class="card-title text-warning">@guild.Name</h4>
+                <div class="card-text">
+                    <p>ID: @guild.Id</p>
+                    <p>Permisions: @guild.Permissions</p>
+                    <p>Icon: @(string.IsNullOrEmpty(guild.Icon) ? "No Icon Set Yet" : guild.Icon)</p>
+                    @if (guild.Features?.Count > 0)
+                    {
+                        <div>
+                            <h5>Features: </h5>
+                            <ul>
+                                @foreach (var feature in guild.Features)
+                                {
+                                    <li>@feature</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public IEnumerable<DiscordApiGuild> Guilds { get; set; }
+
+}

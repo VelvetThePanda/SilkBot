@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
+using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
-using Silk.Dashboard.Helpers;
 
-namespace Silk.Dashboard.Data
+namespace Silk.Dashboard.Controllers
 {
     [Route("[controller]/[action]")]
     public class AccountController : ControllerBase
@@ -20,7 +20,7 @@ namespace Silk.Dashboard.Data
         [HttpGet]
         public IActionResult Login(string returnUrl = "/")
         {
-            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl}, DiscordConfiguration.AuthenticationScheme);
+            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl}, DiscordAuthenticationDefaults.AuthenticationScheme);
             return challenge;
         }
 

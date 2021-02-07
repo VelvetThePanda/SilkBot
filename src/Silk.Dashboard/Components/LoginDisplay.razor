@@ -1,7 +1,7 @@
 ﻿<AuthorizeView>
     <Authorized>
-        <!--Greet the user with their identity name (in this case discord name)-->
-        <a class="btn btn-secondary" href="Account/Manage">@context.User.Identity.Name</a>
+        <!-- Greet the user with their identity name (in this case discord name) -->
+        <a class="btn btn-secondary" href="Dashboard/Profile">@context.User.Identity?.Name</a>
         <a class="btn btn-info" href="Account/LogOut">Log Out</a>
     </Authorized>
     <NotAuthorized>

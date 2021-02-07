@@ -1,0 +1,56 @@
+﻿@page "/Dashboard/Profile"
+
+@attribute [Authorize]
+
+@inherits ComponentBase
+
+@using Microsoft.AspNetCore.Http
+@using Silk.Dashboard.Services.Contracts
+
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IDiscordUserService UserService
+
+<div class="container">
+    <div class="jumbotron">
+        <h2>Hello, @HttpContextAccessor.HttpContext?.User.Identity?.Name</h2>
+        <hr style="height: 1px; background-color: white">
+        @if (_user is not null)
+        {
+            <div>
+                <p>Name: @_user.Username#@_user.Discriminator</p>
+                <p>ID: @_user.Id</p>
+                <p>Flags: @_user.Flags</p>
+            </div>
+        }
+        <div class="form-group w-25">
+            <p>OAuth Token:</p>
+            <button type="button" class="btn btn-primary btn-sm" @onclick="ToggleOAuthTokenVisibility">
+                @(_oAuthTokenVisible ? "Hide Token" : "Show Token")
+            </button>
+            <input class="form-control" type="@OAuthTokenVisibility" value="@_token" readonly>
+        </div>
+    </div>
+</div>
+
+<!--Since guilds is not populated instantly on page load, there needs to be a null check on guilds-->
+@if (AllGuilds == null)
+{
+    <div class="container">
+        <h3>Loading...</h3>
+        <Circle Size="100px" Center="true" Color="#337AB7" />
+    </div>
+}
+else
+{
+    <div class="container">
+        <h3>Servers You Manage:</h3>
+        <br />
+        <GuildView Guilds="@OwnedGuilds" />
+    </div>
+
+    <div class="container">
+        <h3>All Servers You've Joined:</h3>
+        <br />
+        <GuildView Guilds="@AllGuilds" />
+    </div>
+}

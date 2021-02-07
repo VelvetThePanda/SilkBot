@@ -4,9 +4,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Silk.Dashboard.Helpers;
 using Silk.Dashboard.Models.Discord;
 using Silk.Dashboard.Services.Contracts;
 
@@ -30,8 +30,7 @@ namespace Silk.Dashboard.Services.Concretions
         {
             if (!Authenticated(httpContext.User)) return null;
 
-            var discordToken =
-                await httpContext.GetTokenAsync(DiscordConfiguration.AuthenticationScheme, "access_token");
+            var discordToken = await httpContext.GetTokenAsync(DiscordAuthenticationDefaults.AuthenticationScheme, "access_token");
             return discordToken;
         }
 

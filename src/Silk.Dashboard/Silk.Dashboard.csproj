@@ -1,17 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <UserSecretsId>VelvetThePanda-SilkBot-Dashboard</UserSecretsId>
-    <RootNamespace>Silk.Dashboard</RootNamespace>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <UserSecretsId>VelvetThePanda-SilkBot-Dashboard</UserSecretsId>
+        <RootNamespace>Silk.Dashboard</RootNamespace>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Discord" Version="5.0.0" />
-    <PackageReference Include="BlazorPro.Spinkit" Version="1.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-  </ItemGroup>
-  
+    <ItemGroup>
+        <PackageReference Include="AspNet.Security.OAuth.Discord" Version="5.0.1"/>
+        <PackageReference Include="BlazorPro.Spinkit" Version="1.2.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3"/>
+    </ItemGroup>
+
 </Project>
