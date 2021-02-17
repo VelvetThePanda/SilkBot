@@ -10,7 +10,7 @@ using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
 using Silk.Extensions;
 
-namespace Silk.Core.Utilities
+namespace Silk.Core.Utilities.HelpFormatter
 {
     public class HelpFormatter : BaseHelpFormatter
     {
@@ -50,21 +50,19 @@ namespace Silk.Core.Utilities
                     .OrderBy(x => Categories.Order.IndexOf(x.Key));
 
                 foreach (IGrouping<string?, Command> commands in modules)
-                    embed.AddField(commands.Key ?? "Uncategorized", 
+                    embed.AddField(commands.Key ?? "Uncategorized",
                         commands
                             .Select(x => $"`{x.Name}" +
                                          $"{(x is CommandGroup g ? g.IsExecutableWithoutSubcommands ? "**" : "*" : "")}`")
                             .Join(", "));
-                
-                
             }
             else
             {
-                if (Command.IsExperimental()) 
+                if (Command.IsExperimental())
                     embed.WithColor(DiscordColor.DarkRed)
                         .WithFooter("\nThis command is in testing, and marked as Experimental! Please open a ticket if it breaks.");
-                
-                
+
+
                 IReadOnlyList<CommandArgument>? args = Command?.Overloads.OrderByDescending(x => x.Priority).FirstOrDefault()?.Arguments;
 
                 string title = Command!.IsExperimental() ? $"[EXP] Command: `{Command!.QualifiedName}" : $"Command: `{Command!.QualifiedName}";
@@ -84,7 +82,7 @@ namespace Silk.Core.Utilities
                         .ExecutionChecks
                         .OfType<RequireUserPermissionsAttribute>()
                         .FirstOrDefault();
-                
+
                 if (userPerms is not null)
                     embed.AddField("Requires Permissions", userPerms.Permissions.ToPermissionString(), true);
                 if (Command.Aliases.Any())

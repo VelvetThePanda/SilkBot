@@ -6,7 +6,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using Silk.Core.Commands.Furry.Utilities;
-using Silk.Core.Utilities;
+using Silk.Core.Utilities.HelpFormatter;
 
 namespace Silk.Core.Commands.Furry.SFW
 {
@@ -55,7 +55,7 @@ namespace Silk.Core.Commands.Furry.SFW
                     .WithColor(DiscordColor.PhthaloBlue)
                     .WithImageUrl(post.File.Url)
                     .WithFooter("Limit: 7 img / 15 sec");
-                
+
                 await ctx.RespondAsync(embed);
                 await Task.Delay(300);
             }

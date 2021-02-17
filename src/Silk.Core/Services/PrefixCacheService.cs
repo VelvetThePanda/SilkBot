@@ -33,11 +33,12 @@ namespace Silk.Core.Services
         [SuppressMessage("ReSharper", "ConvertIfStatementToReturnStatement")]
         public string RetrievePrefix(ulong? guildId)
         {
+
             if (guildId == default || guildId == 0) return string.Empty;
-            if (_cache.TryGetValue(guildId.Value, out string? prefix)) return prefix!;
+            if (_memoryCache.TryGetValue(GetGuildString(guildId.Value), out var prefix)) return (string) prefix;
             return GetPrefixFromDatabase(guildId.Value);
         }
-        
+
         private string GetPrefixFromDatabase(ulong guildId)
         {
             _sw.Restart();
@@ -52,26 +53,24 @@ namespace Silk.Core.Services
             }
 
             _sw.Stop();
-            _cache.TryAdd(guild.Id, guild.Prefix);
-            //_memoryCache.Set(guildId, guild.Prefix, DateTimeOffset.UtcNow.AddSeconds(1));
-            // _memoryCache
-            //     .CreateEntry(guildId)
-            //     .SetValue(guild.Prefix)
-            //     .SetSlidingExpiration(TimeSpan.FromMinutes(10))
-            //     //.SetAbsoluteExpiration(DateTimeOffset.UtcNow.AddMinutes(10))
-            //     .RegisterPostEvictionCallback((key, _, reason, _) => _logger.LogInformation($"{key} was evicted from cache for {reason}"));
-            //
+            _memoryCache.Set(GetGuildString(guildId), guild.Prefix);
             _logger.LogDebug($"Cached {guild.Prefix} - {guildId} in {_sw.ElapsedMilliseconds} ms");
-
             return guild.Prefix;
         }
 
+
+        // I don't know if updating a reference will update 
         public void UpdatePrefix(ulong id, string prefix)
         {
-            _cache.TryGetValue(id, out string? currentPrefix);
-            _cache.AddOrUpdate(id, prefix, (_, _) => prefix);
-            _logger.LogDebug($"Updated prefix for {id} - {currentPrefix} -> {prefix}");
+            string key = GetGuildString(id);
+
+            _memoryCache.TryGetValue(key, out string oldPrefix);
+            _memoryCache.Set(key, prefix);
+            _logger.LogDebug($"Updated prefix for {id} - {oldPrefix} -> {prefix}");
         }
+
+        private static string GetGuildString(ulong id) => $"GUILD_PREFIX_KEY_{id}";
+
         public void PurgeCache(ulong id)
         {
             _cache.TryRemove(id, out _);

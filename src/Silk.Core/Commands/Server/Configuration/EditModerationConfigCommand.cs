@@ -20,8 +20,7 @@ namespace Silk.Core.Commands.Server.Configuration
             [Group("moderation")]
             public class EditModerationConfigCommand : BaseCommandModule
             {
-                //Does nested class ctor injection work???? //
-                // Yes! //
+                
                 private readonly IDatabaseService? _dbService;
                 private readonly IServiceCacheUpdaterService _cacheUpdaterService;
 
@@ -39,7 +38,7 @@ namespace Silk.Core.Commands.Server.Configuration
                     var builder = new DiscordMessageBuilder();
                     builder.WithoutMentions();
                     builder.WithReply(ctx.Message.Id);
-                    
+
                     if (role.IsManaged)
                     {
                         builder.WithContent("This is a bot role!");
@@ -49,16 +48,16 @@ namespace Silk.Core.Commands.Server.Configuration
                     if (role.Permissions.HasFlag(Permissions.SendMessages))
                     {
                         await ConfigureRoleAsync(ctx, builder, role);
-                        return; 
+                        return;
                     }
                     builder.WithContent($"Alrighty, muted role is now {role.Mention}!");
                     await ctx.Message.CreateReactionAsync(Emojis.EConfirm);
                     await ctx.RespondAsync(builder);
-                    
+
                     GuildConfig config = await _dbService!.GetConfigAsync(ctx.Guild.Id);
                     config.MuteRoleId = role.Id;
                     await _dbService.UpdateConfigAsync(config);
-                    
+
                     _cacheUpdaterService.UpdateGuild(ctx.Guild.Id);
                 }
 
@@ -72,7 +71,7 @@ namespace Silk.Core.Commands.Server.Configuration
 
                     await msg.CreateReactionAsync(yes);
                     await msg.CreateReactionAsync(no);
-                    
+
                     var result = await interactivity.WaitForReactionAsync(x =>
                     {
                         bool isCorrectEmoji = x.Emoji == yes || x.Emoji == no;
@@ -84,13 +83,11 @@ namespace Silk.Core.Commands.Server.Configuration
                     {
                         builder.WithContent("I'll take your silence as a no :o");
                         await ctx.RespondAsync(builder);
-                        return;
                     }
                     else if (result.Result.Emoji == no)
                     {
                         builder.WithContent("Alrighty, canceled.");
                         await ctx.RespondAsync(builder);
-                        return;
                     }
                     else
                     {

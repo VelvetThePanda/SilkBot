@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Silk.Core.Database;
 using Silk.Core.Database.Models;
 using Silk.Core.Utilities;
+using Silk.Core.Utilities.HelpFormatter;
 using Silk.Extensions;
 
 namespace Silk.Core.Commands.Moderation.Ban
@@ -59,7 +60,7 @@ namespace Silk.Core.Commands.Moderation.Ban
                 }
                 if (user.IsAbove(bot))
                 {
-                    errorReason = $"{target.Mention} has a role {user.GetHighestRoleMention()} that is above mine, and I cannot ban them!";
+                    errorReason = $"{target.Mention} has a role {user.GetRoleMention()} that is above mine, and I cannot ban them!";
                     return false;
                 }
 

@@ -14,7 +14,7 @@ namespace Silk.Items.Entities
     {
         [JsonInclude]
         private readonly List<IComponent> Components = new();
-        
+
         public IEnumerator<IComponent> GetEnumerator() => Components.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -34,6 +34,6 @@ namespace Silk.Items.Entities
 
         public void Remove(IComponent comp) => Components.Remove(comp);
 
-        public TComp Get<TComp>() where TComp : class => this.SingleOrDefault(c => c.GetType().Name == typeof(TComp).Name) as TComp;
+        public TComp? Get<TComp>() where TComp : class => this.SingleOrDefault(c => c.GetType().Name == typeof(TComp).Name) as TComp;
     }
 }

@@ -17,16 +17,16 @@ namespace Silk.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityByDefaultColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "5.0.3")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("Silk.Core.Database.Models.BlackListedWord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("GuildId")
                         .HasColumnType("integer");
@@ -40,37 +40,6 @@ namespace Silk.Core.Migrations
                     b.HasIndex("GuildId");
 
                     b.ToTable("BlackListedWord");
-                });
-
-            modelBuilder.Entity("Silk.Core.Database.Models.Changelog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
-
-                    b.Property<string>("Additions")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Authors")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("ChangeTime")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("Removals")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Version")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ChangeLogs");
                 });
 
             modelBuilder.Entity("Silk.Core.Database.Models.GlobalUser", b =>
@@ -110,7 +79,7 @@ namespace Silk.Core.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<bool>("AutoDehoist")
                         .HasColumnType("boolean");
@@ -130,8 +99,18 @@ namespace Silk.Core.Migrations
                     b.Property<bool>("GreetMembers")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("GreetOnScreeningComplete")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("GreetOnVerificationRole")
+                        .HasColumnType("boolean");
+
                     b.Property<decimal>("GreetingChannel")
                         .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("GreetingText")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
@@ -144,7 +123,7 @@ namespace Silk.Core.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsPremium")
+                    b.Property<bool>("LogMemberJoing")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("LogMessageChanges")
@@ -165,6 +144,9 @@ namespace Silk.Core.Migrations
                     b.Property<bool>("UseAggressiveRegex")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal>("VerificationRole")
+                        .HasColumnType("numeric(20,0)");
+
                     b.Property<bool>("WarnOnMatchedInvite")
                         .HasColumnType("boolean");
 
@@ -181,7 +163,7 @@ namespace Silk.Core.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<decimal>("Enforcer")
                         .HasColumnType("numeric(20,0)");
@@ -220,17 +202,13 @@ namespace Silk.Core.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("GuildConfigId")
                         .HasColumnType("integer");
 
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)");
-
-                    b.Property<string>("GuildName")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("VanityURL")
                         .IsRequired()
@@ -241,27 +219,6 @@ namespace Silk.Core.Migrations
                     b.HasIndex("GuildConfigId");
 
                     b.ToTable("Invite");
-                });
-
-            modelBuilder.Entity("Silk.Core.Database.Models.Item", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
-
-                    b.Property<decimal>("OwnerId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("Silk.Core.Database.Models.SelfAssignableRole", b =>
@@ -284,7 +241,7 @@ namespace Silk.Core.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<DateTime>("Closed")
                         .HasColumnType("timestamp without time zone");
@@ -308,7 +265,7 @@ namespace Silk.Core.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Message")
                         .IsRequired()
@@ -344,7 +301,7 @@ namespace Silk.Core.Migrations
                     b.Property<long>("DatabaseId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityByDefaultColumn();
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int>("Flags")
                         .HasColumnType("integer");
@@ -402,17 +359,6 @@ namespace Silk.Core.Migrations
                         .HasForeignKey("GuildConfigId");
                 });
 
-            modelBuilder.Entity("Silk.Core.Database.Models.Item", b =>
-                {
-                    b.HasOne("Silk.Core.Database.Models.GlobalUser", "Owner")
-                        .WithMany("Items")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Owner");
-                });
-
             modelBuilder.Entity("Silk.Core.Database.Models.SelfAssignableRole", b =>
                 {
                     b.HasOne("Silk.Core.Database.Models.GuildConfig", null)
@@ -440,11 +386,6 @@ namespace Silk.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Guild");
-                });
-
-            modelBuilder.Entity("Silk.Core.Database.Models.GlobalUser", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Silk.Core.Database.Models.Guild", b =>

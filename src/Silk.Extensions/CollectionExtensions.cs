@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using DSharpPlus.Entities;
 
@@ -30,8 +29,7 @@ namespace Silk.Extensions
         }
 
         /// <summary>Returns the index of an element contained in a list if it is found, otherwise returns -1.</summary>
-        public static int
-            IndexOf<T>(this IReadOnlyList<T> list, T element) // IList doesn't implement IndexOf for some reason
+        public static int IndexOf<T>(this IReadOnlyList<T> list, T element) // IList doesn't implement IndexOf for some reason
         {
             for (var i = 0; i < list.Count; i++)
                 if (list[i].Equals(element))
@@ -64,23 +62,17 @@ namespace Silk.Extensions
             if (!match.Success) throw new ArgumentException("Not a valid emoji!");
             int matchIndex = match.Value.LastIndexOf(':');
             string subMatch = emoji.Trim()[++matchIndex..^1];
-            
+
             if (!ulong.TryParse(subMatch, out ulong result)) throw new ArgumentException("Invalid emoji Id!");
-            
+
             return result;
         }
 
-        public static void AddOrUpdate<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key,
+        public static void AddOrUpdate<TKey, TValue>(
+            this ConcurrentDictionary<TKey, TValue> dict, TKey key,
             TValue value)
         {
             dict.AddOrUpdate(key, value, (k, v) => v = value);
-        }
-
-        public static IEnumerable<string> WhereMoreThan(this IEnumerable<string> e, int count)
-        {
-            for (var i = 0; i < e.Count(); i++)
-                if (e.ElementAt(i).Length > count)
-                    yield return e.ElementAt(i);
         }
     }
 }

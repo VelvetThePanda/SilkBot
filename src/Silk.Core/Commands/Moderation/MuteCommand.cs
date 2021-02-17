@@ -9,6 +9,7 @@ using Silk.Core.Database.Models;
 using Silk.Core.Services;
 using Silk.Core.Services.Interfaces;
 using Silk.Core.Utilities;
+using Silk.Core.Utilities.HelpFormatter;
 using Silk.Extensions;
 
 namespace Silk.Core.Commands.Moderation
@@ -48,7 +49,7 @@ namespace Silk.Core.Commands.Moderation
 
             Infraction infraction = await _infractionService.CreateTemporaryInfractionAsync(user, ctx.Member,
                 InfractionType.Mute, reason, DateTime.Now.Add(duration));
-            
+
             await _infractionService.MuteAsync(user, ctx.Channel, infraction);
         }
     }

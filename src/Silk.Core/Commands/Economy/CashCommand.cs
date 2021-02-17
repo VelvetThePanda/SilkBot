@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Silk.Core.Database;
 using Silk.Core.Database.Models;
 using Silk.Core.Utilities;
+using Silk.Core.Utilities.HelpFormatter;
 
 namespace Silk.Core.Commands.Economy
 {
@@ -37,7 +38,7 @@ namespace Silk.Core.Commands.Economy
             DiscordEmbedBuilder eb = EmbedHelper
                 .CreateEmbed(ctx, "Account balance:", $"You have {account.Cash} dollars!")
                 .WithAuthor(ctx.User.Username, iconUrl: ctx.User.AvatarUrl);
-            
+
             await ctx.RespondAsync(eb);
         }
     }

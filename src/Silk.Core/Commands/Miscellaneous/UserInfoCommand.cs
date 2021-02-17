@@ -9,7 +9,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Silk.Core.Utilities;
+using Silk.Core.Utilities.HelpFormatter;
 using Silk.Extensions;
 
 namespace Silk.Core.Commands.Miscellaneous
@@ -23,7 +23,7 @@ namespace Silk.Core.Commands.Miscellaneous
         public async Task RoleInfo(CommandContext ctx, DiscordRole role)
         {
             IEnumerable<DiscordMember> members = ctx.Guild.Members.Values.Where(m => m.Roles.Contains(role));
-            
+
             DiscordEmbedBuilder embed = new DiscordEmbedBuilder()
                 .WithTitle($"Info for {role.Name} ( {role.Id} ):")
                 .AddField("Color:", role.Color.ToString())
@@ -31,7 +31,7 @@ namespace Silk.Core.Commands.Miscellaneous
                 .AddField("Hoisted:", role.IsHoisted.ToString())
                 .AddField("Hierarchy:", GetHierarchy(ctx, role))
                 .AddField("Bot role:", role.IsManaged.ToString())
-                .AddField("Members:", members.Take(members.Count() > 5 ? 5 : members.Count()).Select(m => m.Mention).Join(", ") + $"{(members.Count() > 5 ? $" (plus ...{members.Count() - 5} others)" : "")}")
+                .AddField("Members:", members.Count() is 0 ? "This role isn't assigned to anyone!" : members.Take(members.Count() > 5 ? 5 : members.Count()).Select(m => m.Mention).Join(", ") + $"{(members.Count() > 5 ? $" (plus ...{members.Count() - 5} others)" : "")}")
                 .AddField("Mentionable:", role.IsMentionable.ToString())
                 .AddField("Permissions:", role.Permissions.ToString())
                 .WithColor(role.Color)
@@ -39,7 +39,7 @@ namespace Silk.Core.Commands.Miscellaneous
 
             await ctx.RespondAsync(embed);
         }
-        
+
         [Command("info")]
         [Description("Get info about a member")]
         public async Task GetUserInfo(CommandContext ctx, DiscordUser member)
@@ -131,10 +131,10 @@ namespace Silk.Core.Commands.Miscellaneous
                 rle = roles.Last(r => r.Position < role.Position);
                 roleString += $"⠀⠀↑\n{rle.Mention}";
             }
-            
+
             return roleString;
         }
-        
+
         private static string GetCreationTime(DateTimeOffset offset)
         {
             TimeSpan creationTime = DateTime.Now.Subtract(offset.DateTime);

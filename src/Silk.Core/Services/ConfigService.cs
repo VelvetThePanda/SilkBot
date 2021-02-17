@@ -10,8 +10,11 @@ namespace Silk.Core.Services
     {
         private readonly IMemoryCache _cache;
         private readonly IDatabaseService _db;
-
-        public ConfigService(IMemoryCache cache, IDatabaseService db) => (_cache, _db) = (cache, db);
+        public ConfigService(IMemoryCache cache, IDatabaseService db)
+        {
+            _cache = cache;
+            _db = db;
+        }
 
         public async ValueTask<GuildConfig> GetConfigAsync(ulong guildId)
         {

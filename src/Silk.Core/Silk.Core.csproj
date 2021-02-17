@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <TieredCompilation>false</TieredCompilation>
-    <Authors>VelvetThePanda, CalebABG</Authors>
+    <Authors>VelvetThePanda, CalebABG97, NatsumiHB</Authors>
     <Company>The Silk Devs Team</Company>
     <PackageProjectUrl>https://github.com/VelvetThePanda/Silk</PackageProjectUrl>
     <UserSecretsId>VelvetThePanda-SilkBot</UserSecretsId>
@@ -21,11 +21,10 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>false</Optimize>
-    <WarningLevel>3</WarningLevel>
+    <WarningLevel>2</WarningLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <DocumentationFile></DocumentationFile>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -51,34 +50,34 @@
   <ItemGroup>
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
-    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00794" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00794" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00794" />
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00799" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00799" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00799" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Humanizer" Version="2.8.26" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="MathParser.org-mXparser" Version="4.4.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.8.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0-4.final" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.2">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0-preview.1.21102.12" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0-preview.1.21102.12" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.2" />
     <PackageReference Include="Serilog" Version="2.10.1-dev-01265" />
     <PackageReference Include="Serilog.Expressions" Version="1.0.0" />
-    <PackageReference Include="Serilog.Extensions.Hosting" Version="4.0.0-dev-00051" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="4.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.2-dev-10284" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.2.0-dev-00264" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0-dev-00839" />
@@ -108,6 +107,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Abstractions" />
     <Folder Include="Commands\Server\Roles" />
   </ItemGroup>
   

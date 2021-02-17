@@ -11,25 +11,26 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Silk.Core.Utilities;
+using Silk.Core.Utilities.Bot;
 
 namespace Silk.Core
 {
     public class Program
     {
         public static DateTime Startup { get; } = DateTime.Now;
-        
+
 
         public static string HttpClientName { get; } = "Silk";
 
         private static readonly DiscordConfiguration _clientConfig = new()
         {
-            Intents = DiscordIntents.Guilds                 | // Caching
-                      DiscordIntents.GuildMembers           |   //Auto-mod/Auto-greet
-                      DiscordIntents.DirectMessages         | // Commands & Auto-Mod
-                      DiscordIntents.GuildPresences         | // Role-menu
-                      DiscordIntents.GuildMessages          | // DM Commands
-                      DiscordIntents.GuildMessageReactions  | 
-                      DiscordIntents.DirectMessageReactions ,   // Auto-mod,
+            Intents = DiscordIntents.Guilds | // Caching
+                      DiscordIntents.GuildMembers | //Auto-mod/Auto-greet
+                      DiscordIntents.DirectMessages | // Commands & Auto-Mod
+                      DiscordIntents.GuildPresences | // Role-menu
+                      DiscordIntents.GuildMessages | // DM Commands
+                      DiscordIntents.GuildMessageReactions |
+                      DiscordIntents.DirectMessageReactions, // Auto-mod,
             MessageCacheSize = 1024,
             MinimumLogLevel = LogLevel.None
         };
@@ -49,7 +50,7 @@ namespace Silk.Core
                 })
                 .ConfigureLogging((builder, _) =>
                 {
-                    const string logFormat = "[{Timestamp:h:mm:ss-ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+                    const string logFormat = "[{Timestamp:h:mm:ss ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
                     var logger = new LoggerConfiguration()
                         .WriteTo.Console(outputTemplate: logFormat, theme: SerilogThemes.Bot)
                         .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, logFormat, rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
@@ -57,13 +58,13 @@ namespace Silk.Core
 
                     Log.Logger = builder.Configuration["LogLevel"] switch
                     {
-                        "All"  => logger.MinimumLevel.Verbose().CreateLogger(),
-                        "Info"  => logger.MinimumLevel.Information().CreateLogger(),
-                        "Debug"  => logger.MinimumLevel.Debug().CreateLogger(),
+                        "All" => logger.MinimumLevel.Verbose().CreateLogger(),
+                        "Info" => logger.MinimumLevel.Information().CreateLogger(),
+                        "Debug" => logger.MinimumLevel.Debug().CreateLogger(),
                         "Warning" => logger.MinimumLevel.Warning().CreateLogger(),
-                        "Error"    => logger.MinimumLevel.Error().CreateLogger(),
-                        "Panic"     => logger.MinimumLevel.Fatal().CreateLogger(),
-                        _            => logger.MinimumLevel.Information().CreateLogger()
+                        "Error" => logger.MinimumLevel.Error().CreateLogger(),
+                        "Panic" => logger.MinimumLevel.Fatal().CreateLogger(),
+                        _ => logger.MinimumLevel.Information().CreateLogger()
                     };
                 })
                 .ConfigureServices((context, services) =>
@@ -73,7 +74,8 @@ namespace Silk.Core
                     services.AddSingleton(new DiscordShardedClient(_clientConfig));
                     Core.Startup.AddDatabase(services, config.GetConnectionString("dbConnection"));
                     Core.Startup.AddServices(services);
-                    
+
+
                     services.AddMemoryCache(option => option.ExpirationScanFrequency = TimeSpan.FromSeconds(30));
 
                     services.AddHttpClient(HttpClientName, client =>
