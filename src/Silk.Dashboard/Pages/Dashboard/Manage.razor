@@ -14,7 +14,7 @@
         <div class="container text-center">
             @if (!string.IsNullOrEmpty(_guild.IconUrl))
             {
-                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=512" alt="@_guild.Name Logo" />
+                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=1024" alt="@_guild.Name Logo" />
             }
             <h2>@_guild.Name</h2>
             <hr style="height: 1px; background-color: #ffffff" />
@@ -27,21 +27,16 @@
     [Parameter]
     public string GuildId { get; set; }
 
-    private DiscordGuild? _guild;
+    private DiscordGuild _guild;
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
-        {
-            _guild = RestClientService
-                .GetGuildsByPermission(Permissions.ManageGuild)
-                .FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
+        _guild = RestClientService
+            .GetGuildsByPermission(Permissions.ManageGuild)
+            .FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
 
-            if (_guild is null)
-                NavigationManager.NavigateTo("/Dashboard/Profile");
-
-            StateHasChanged();
-        }
+        if (_guild is null)
+            NavigationManager.NavigateTo("/Dashboard/Profile");
     }
 
 }

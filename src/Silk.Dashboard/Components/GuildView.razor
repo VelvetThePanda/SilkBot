@@ -4,18 +4,28 @@
     <div class="card border-info" style="max-width: 20rem;">
         <div class="card-body text-center">
             <!-- TODO: Remove bottom margin if no image exists -->
-            <h4 class="card-title text-warning">@Guild.Name</h4>
-            @if (!string.IsNullOrEmpty(Guild.IconUrl))
+            <h4 class="card-title text-warning @_headerClass">@Guild.Name</h4>
+            @if (_hasIcon)
             {
-                <img class="card-img-top mb-2" src="@Guild.IconUrl?size=1024" alt="@Guild.Name Logo" />
+                <img class="card-img-top" src="@Guild.IconUrl?size=1024" alt="@Guild.Name Logo" />
             }
         </div>
     </div>
 </a>
 
 @code {
-
     [Parameter]
     public DiscordGuild Guild { get; set; }
+
+    private bool _hasIcon = true;
+    private string _headerClass = "mb-3";
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(Guild.IconUrl)) return;
+        
+        _hasIcon = false;
+        _headerClass = "mb-0";
+    }
 
 }
