@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Silk.Data.Migrations
 {
-    public partial class whatever : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -77,7 +77,7 @@ namespace Silk.Data.Migrations
                     InfractionFormat = table.Column<string>(type: "text", nullable: false),
                     MaxUserMentions = table.Column<int>(type: "integer", nullable: false),
                     MaxRoleMentions = table.Column<int>(type: "integer", nullable: false),
-                    GeneralLoggingChannel = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
+                    LoggingChannel = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
                     LogMessageChanges = table.Column<bool>(type: "boolean", nullable: false),
                     LogMemberJoing = table.Column<bool>(type: "boolean", nullable: false),
                     BlacklistInvites = table.Column<bool>(type: "boolean", nullable: false),

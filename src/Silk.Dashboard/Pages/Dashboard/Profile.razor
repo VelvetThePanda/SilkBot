@@ -3,13 +3,7 @@
 
 @inherits ComponentBase
 
-<div class="d-flex align-content-center">
-    <div class="container text-center">
-        <img class="img-fluid mb-2 rounded-circle" src="@CurrentUserAvatar" alt="Avatar URL" />
-        <h2>Hello, @CurrentUserName</h2>
-        <hr style="height: 1px; background-color: #ffffff" />
-    </div>
-</div>
+<HeaderView ImageUrl="@CurrentUserAvatar" Text="@($"Hello, {CurrentUserName}")" />
 
 @if (_allGuilds is null)
 {

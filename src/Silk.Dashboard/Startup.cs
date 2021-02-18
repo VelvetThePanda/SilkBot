@@ -35,9 +35,7 @@ namespace Silk.Dashboard
             services.AddDbContext<SilkDbContext>(o =>
                 o.UseNpgsql(Configuration.GetConnectionString("dbConnection")));
             services.AddMediatR(typeof(SilkDbContext));
-
-            services.AddSingleton<GuildConfigService>();
-
+            
             // Configure authentication for the user
             services.AddAuthentication(opt =>
                 {
@@ -73,6 +71,10 @@ namespace Silk.Dashboard
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            
+            using (var scope = app.ApplicationServices.CreateScope())
+            using (var context = scope.ServiceProvider.GetService<SilkDbContext>())
+                context?.Database.Migrate();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

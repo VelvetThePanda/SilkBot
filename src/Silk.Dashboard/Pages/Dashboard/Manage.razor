@@ -4,22 +4,27 @@
 @using DSharpPlus.Entities
 @using Silk.Dashboard.Services
 @using DSharpPlus
+@using Silk.Data
+@using Silk.Data.Models
 
 @inject DiscordRestClientService RestClientService
 @inject NavigationManager NavigationManager
+@inject SilkDbContext SilkDbContext
 
 @if (_guild is not null)
 {
-    <div class="d-flex align-content-center">
-        <div class="container text-center">
-            @if (!string.IsNullOrEmpty(_guild.IconUrl))
-            {
-                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=1024" alt="@_guild.Name Logo" />
-            }
-            <h2>@_guild.Name</h2>
-            <hr style="height: 1px; background-color: #ffffff" />
-        </div>
-    </div>
+    <HeaderView ImageUrl="@_guild.IconUrl" Text="@_guild.Name" />
+    <EditForm Model="@_config" OnValidSubmit="@SaveChangesAsync">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        
+        @*<InputNumber id="MuteRoleId" @bind-Value="_config.MuteRoleId" />*@
+        <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers">
+            Greet Members
+        </InputCheckbox>
+        
+        <button class="btn btn-primary">Save Changes</button>
+    </EditForm>
 }
 
 @code {
@@ -28,8 +33,9 @@
     public string GuildId { get; set; }
 
     private DiscordGuild _guild;
+    private GuildConfig _config;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _guild = RestClientService
             .GetGuildsByPermission(Permissions.ManageGuild)
@@ -37,6 +43,14 @@
 
         if (_guild is null)
             NavigationManager.NavigateTo("/Dashboard/Profile");
+
+        _config = await SilkDbContext.GuildConfigs.GetConfig(_guild.Id);
+        if (_config is null)
+            _config = new GuildConfig();
     }
 
+    protected async Task SaveChangesAsync()
+    {
+        
+    }
 }
