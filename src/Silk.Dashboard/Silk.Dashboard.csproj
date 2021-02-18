@@ -11,11 +11,27 @@
         <PackageReference Include="Blazored.Toast" Version="3.1.2" />
         <PackageReference Include="BlazorPro.Spinkit" Version="1.2.0" />
         <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-rc2" />
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0-preview.1.21102.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Silk.Data\Silk.Data.csproj" />
       <ProjectReference Include="..\Silk.Extensions\Silk.Extensions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="appSettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="appSettings.sample.json" />
     </ItemGroup>
 
 </Project>

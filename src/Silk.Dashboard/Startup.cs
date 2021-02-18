@@ -1,11 +1,14 @@
 using AspNet.Security.OAuth.Discord;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Silk.Dashboard.Services;
+using Silk.Data;
 
 namespace Silk.Dashboard
 {
@@ -28,6 +31,12 @@ namespace Silk.Dashboard
             services.AddHttpContextAccessor();
 
             services.AddScoped<DiscordRestClientService>();
+
+            services.AddDbContext<SilkDbContext>(o =>
+                o.UseNpgsql(Configuration.GetConnectionString("dbConnection")));
+            services.AddMediatR(typeof(SilkDbContext));
+
+            services.AddSingleton<GuildConfigService>();
 
             // Configure authentication for the user
             services.AddAuthentication(opt =>
