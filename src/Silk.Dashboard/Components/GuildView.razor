@@ -4,32 +4,22 @@
 <div class="card-columns">
     @foreach (var guild in Guilds)
     {
-        <div class="card border-info mb-3" style="max-width: 20rem;">
-            <div class="card-body">
-                <h4 class="card-title text-warning">@guild.Name</h4>
-                <div class="card-text">
-                    <p>ID: @guild.Id</p>
-                    <p>Icon: @(string.IsNullOrEmpty(guild.IconUrl) ? "No Icon Set Yet" : guild.IconUrl)</p>
-                    @if (guild.Features?.Count > 0)
+        <a class="text-decoration-none" href="/Dashboard/Manage/@guild.Id">
+            <div class="card border-info" style="max-width: 20rem;">
+                <div class="card-body text-center">
+                    <!-- TODO: Remove bottom margin if no image exists -->
+                    <h4 class="card-title text-warning">@guild.Name</h4>
+                    @if (!string.IsNullOrEmpty(guild.IconUrl))
                     {
-                        <div>
-                            <h5>Features: </h5>
-                            <ul>
-                                @foreach (var feature in guild.Features)
-                                {
-                                    <li>@feature</li>
-                                }
-                            </ul>
-                        </div>
+                        <img class="card-img-top mb-2" src="@guild.IconUrl?size=1024" alt="@guild.Name Logo"/>
                     }
                 </div>
             </div>
-        </div>
+        </a>
     }
 </div>
 
 @code {
     [Parameter]
     public IEnumerable<DiscordGuild> Guilds { get; set; }
-
 }

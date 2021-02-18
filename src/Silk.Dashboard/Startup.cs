@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Silk.Dashboard.Services.Concretions;
-using Silk.Dashboard.Services.Contracts;
+using Silk.Dashboard.Services;
 
 namespace Silk.Dashboard
 {
@@ -29,8 +28,7 @@ namespace Silk.Dashboard
             services.AddHttpContextAccessor();
             services.AddHttpClient();
 
-            services.AddSingleton<IDiscordUserService, DiscordUserService>();
-            services.AddSingleton<IDiscordHttpClient, DiscordHttpClient>();
+            services.AddTransient<DiscordRestClientService>();
 
             // Configure authentication for the user
             services.AddAuthentication(opt =>

@@ -3,78 +3,34 @@
 @attribute [Authorize]
 
 @inherits ComponentBase
-
 @using Microsoft.AspNetCore.Http
-@using Silk.Dashboard.Services.Contracts
+@using DSharpPlus
+@using Silk.Dashboard.Services
 
 @inject IHttpContextAccessor HttpContextAccessor
-@inject IDiscordUserService UserService
+@inject DiscordRestClientService RestClientService
 
-@if (_doneLoading)
-{
-    <div class="container">
-        <div class="jumbotron">
-            <h2>Hello, @_client.CurrentUser.Username</h2>
-            <hr style="height: 1px; background-color: white">
-            <div>
-                <p>Name: @_client.CurrentUser.Username#@_client.CurrentUser.Discriminator</p>
-                <p>ID: @_client.CurrentUser.Id</p>-->
-                @*<p>Flags: @_user.Flags</p>*@
-            </div>
-            <div class="form-group w-25">
-                <p>OAuth Token:</p>
-                <button type="button" class="btn btn-primary btn-sm" @onclick="ToggleOAuthTokenVisibility">
-                    @(_oAuthTokenVisible ? "Hide Token" : "Show Token")
-                </button>
-                <input class="form-control" type="@OAuthTokenVisibility" value="@_token" readonly>
-            </div>
-        </div>
+<div class="d-flex align-content-center">
+    <div class="container text-center">
+        <img class="img-fluid mb-2 rounded-circle" src="@RestClientService.RestClient.CurrentUser.GetAvatarUrl(ImageFormat.Auto)" alt="Avatar URL" />
+        <h2>Hello, @RestClientService.RestClient.CurrentUser.Username</h2>
+        <hr style="height: 1px; background-color: #ffffff" />
     </div>
+</div>
 
-    @if (_allGuilds is not null)
-    {
-        <div class="container">
-            <h5>Guilds</h5>
-            <table class="table table-dark table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var guild in _allGuilds)
-                    {
-                        <tr>
-                            <th scope="row">@guild.Id</th>
-                            <td>@guild.Name</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-}
 
 <!--Since guilds is not populated instantly on page load, there needs to be a null check on guilds-->
-<!--@if (_allGuilds == null)
+@if (_allGuilds is null)
 {
-    <div class="container">
-        <h3>Loading...</h3>
-        <Circle Size="100px" Center="true" Color="#337AB7" />
+    <div class="container mt-4">
+        <Circle Size="100px" Center="true" Color="#337AB7"/>
     </div>
 }
 else
 {
     <div class="container">
         <h3>Servers You Manage:</h3>
-        <br />
-        <GuildView Guilds="@_ownedGuilds" />
+        <br/>
+        <GuildView Guilds="@_ownedGuilds"/>
     </div>
-
-    <div class="container">
-        <h3>All Servers You've Joined:</h3>
-        <br />
-        <GuildView Guilds="@_allGuilds" />
-    </div>
-}-->
+}

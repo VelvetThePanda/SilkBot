@@ -1,0 +1,43 @@
+﻿@page "/Dashboard/Manage/{GuildId}"
+@attribute [Authorize]
+
+@using DSharpPlus.Entities
+@using Silk.Dashboard.Services
+@using DSharpPlus
+
+@inject DiscordRestClientService RestClientService
+@inject NavigationManager NavigationManager
+
+@if(_guild is not null) {
+    <div class="d-flex align-content-center">
+        <div class="container text-center">
+            @if (!string.IsNullOrEmpty(_guild.IconUrl))
+            {
+                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=1024" alt="@_guild.Name Logo" />
+            }
+            <h2>@_guild.Name</h2>
+            <hr style="height: 1px; background-color: #ffffff" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string GuildId { get; set; }
+
+    private DiscordGuild? _guild;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _guild = RestClientService.GetGuildsByPermission(Permissions.ManageGuild).FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
+            
+            if(_guild is null)
+                NavigationManager.NavigateTo("/Dashboard/Profile");
+            
+            StateHasChanged();
+        }
+    }
+
+}
