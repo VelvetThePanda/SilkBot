@@ -10,30 +10,54 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IDiscordUserService UserService
 
-<div class="container">
-    <div class="jumbotron">
-        <h2>Hello, @HttpContextAccessor.HttpContext?.User.Identity?.Name</h2>
-        <hr style="height: 1px; background-color: white">
-        @if (_user is not null)
-        {
+@if (_doneLoading)
+{
+    <div class="container">
+        <div class="jumbotron">
+            <h2>Hello, @_client.CurrentUser.Username</h2>
+            <hr style="height: 1px; background-color: white">
             <div>
-                <p>Name: @_user.Username#@_user.Discriminator</p>
-                <p>ID: @_user.Id</p>
-                <p>Flags: @_user.Flags</p>
+                <p>Name: @_client.CurrentUser.Username#@_client.CurrentUser.Discriminator</p>
+                <p>ID: @_client.CurrentUser.Id</p>-->
+                @*<p>Flags: @_user.Flags</p>*@
             </div>
-        }
-        <div class="form-group w-25">
-            <p>OAuth Token:</p>
-            <button type="button" class="btn btn-primary btn-sm" @onclick="ToggleOAuthTokenVisibility">
-                @(_oAuthTokenVisible ? "Hide Token" : "Show Token")
-            </button>
-            <input class="form-control" type="@OAuthTokenVisibility" value="@_token" readonly>
+            <div class="form-group w-25">
+                <p>OAuth Token:</p>
+                <button type="button" class="btn btn-primary btn-sm" @onclick="ToggleOAuthTokenVisibility">
+                    @(_oAuthTokenVisible ? "Hide Token" : "Show Token")
+                </button>
+                <input class="form-control" type="@OAuthTokenVisibility" value="@_token" readonly>
+            </div>
         </div>
     </div>
-</div>
+
+    @if (_allGuilds is not null)
+    {
+        <div class="container">
+            <h5>Guilds</h5>
+            <table class="table table-dark table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var guild in _allGuilds)
+                    {
+                        <tr>
+                            <th scope="row">@guild.Id</th>
+                            <td>@guild.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
 
 <!--Since guilds is not populated instantly on page load, there needs to be a null check on guilds-->
-@if (AllGuilds == null)
+<!--@if (_allGuilds == null)
 {
     <div class="container">
         <h3>Loading...</h3>
@@ -45,12 +69,12 @@ else
     <div class="container">
         <h3>Servers You Manage:</h3>
         <br />
-        <GuildView Guilds="@OwnedGuilds" />
+        <GuildView Guilds="@_ownedGuilds" />
     </div>
 
     <div class="container">
         <h3>All Servers You've Joined:</h3>
         <br />
-        <GuildView Guilds="@AllGuilds" />
+        <GuildView Guilds="@_allGuilds" />
     </div>
-}
+}-->

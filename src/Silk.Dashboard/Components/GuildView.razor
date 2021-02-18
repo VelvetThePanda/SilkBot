@@ -1,4 +1,5 @@
 ﻿@using Silk.Dashboard.Models.Discord
+@using DSharpPlus.Entities
 
 <div class="card-columns">
     @foreach (var guild in Guilds)
@@ -8,8 +9,7 @@
                 <h4 class="card-title text-warning">@guild.Name</h4>
                 <div class="card-text">
                     <p>ID: @guild.Id</p>
-                    <p>Permisions: @guild.Permissions</p>
-                    <p>Icon: @(string.IsNullOrEmpty(guild.Icon) ? "No Icon Set Yet" : guild.Icon)</p>
+                    <p>Icon: @(string.IsNullOrEmpty(guild.IconUrl) ? "No Icon Set Yet" : guild.IconUrl)</p>
                     @if (guild.Features?.Count > 0)
                     {
                         <div>
@@ -29,8 +29,7 @@
 </div>
 
 @code {
-
     [Parameter]
-    public IEnumerable<DiscordApiGuild> Guilds { get; set; }
+    public IEnumerable<DiscordGuild> Guilds { get; set; }
 
 }
