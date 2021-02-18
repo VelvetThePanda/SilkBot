@@ -8,12 +8,12 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Microsoft.EntityFrameworkCore;
 using Silk.Core.Commands.Moderation.Utilities;
-using Silk.Core.Database;
-using Silk.Core.Database.Models;
 using Silk.Core.Utilities.HelpFormatter;
+using Silk.Data;
+using Silk.Data.Models;
 using Silk.Extensions;
 using Silk.Extensions.DSharpPlus;
-using InfractionType = Silk.Core.Database.Models.InfractionType;
+using InfractionType = Silk.Data.Models.InfractionType;
 
 namespace Silk.Core.Commands.Moderation.Ban
 {
@@ -107,7 +107,7 @@ namespace Silk.Core.Commands.Moderation.Ban
         /// <param name="caller">The member that's executing the command</param>
         /// <param name="recipient">The member to be banned.</param>
         /// <returns>A <see cref="BanFailureReason"></see> if some check fails, else null.</returns>
-        private static BanFailureReason CanBan(DiscordMember bot, DiscordMember caller, DiscordMember recipient)
+        private static BanFailureReason? CanBan(DiscordMember bot, DiscordMember caller, DiscordMember recipient)
         {
             if (!bot.Roles.Any(r => r.Permissions.HasFlag(Permissions.BanMembers)))
                 return new BanFailureReason(BanFailureReason.INSUFFICIENT_BOT_PERMISSIONS);
