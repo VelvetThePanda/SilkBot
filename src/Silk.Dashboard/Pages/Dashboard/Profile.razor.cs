@@ -11,8 +11,6 @@ namespace Silk.Dashboard.Pages.Dashboard
 {
     public partial class Profile : ComponentBase
     {
-        private const ulong DiscordManageServerPermission = 0x20;
-
         private string _token;
         private bool _oAuthTokenVisible;
 

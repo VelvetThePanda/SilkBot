@@ -359,3 +359,5 @@ MigrationBackup/
 /Token.txt
 /Dockerfile
 /dbLogin
+
+appSettings.json
