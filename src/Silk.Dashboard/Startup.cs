@@ -26,9 +26,8 @@ namespace Silk.Dashboard
             services.AddServerSideBlazor();
             
             services.AddHttpContextAccessor();
-            services.AddHttpClient();
 
-            services.AddTransient<DiscordRestClientService>();
+            services.AddScoped<DiscordRestClientService>();
 
             // Configure authentication for the user
             services.AddAuthentication(opt =>

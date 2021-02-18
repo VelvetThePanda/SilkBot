@@ -1,0 +1,15 @@
+﻿@using DSharpPlus.Entities
+
+<div class="card-columns">
+    @foreach (var guild in Guilds)
+    {
+        <GuildView Guild="@guild" />
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public IEnumerable<DiscordGuild> Guilds { get; set; }
+
+}

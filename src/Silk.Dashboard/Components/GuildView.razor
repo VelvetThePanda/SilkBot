@@ -1,25 +1,21 @@
-﻿@using Silk.Dashboard.Models.Discord
-@using DSharpPlus.Entities
+﻿@using DSharpPlus.Entities
 
-<div class="card-columns">
-    @foreach (var guild in Guilds)
-    {
-        <a class="text-decoration-none" href="/Dashboard/Manage/@guild.Id">
-            <div class="card border-info" style="max-width: 20rem;">
-                <div class="card-body text-center">
-                    <!-- TODO: Remove bottom margin if no image exists -->
-                    <h4 class="card-title text-warning">@guild.Name</h4>
-                    @if (!string.IsNullOrEmpty(guild.IconUrl))
-                    {
-                        <img class="card-img-top mb-2" src="@guild.IconUrl?size=1024" alt="@guild.Name Logo"/>
-                    }
-                </div>
-            </div>
-        </a>
-    }
-</div>
+<a class="text-decoration-none" href="/Dashboard/Manage/@Guild.Id">
+    <div class="card border-info" style="max-width: 20rem;">
+        <div class="card-body text-center">
+            <!-- TODO: Remove bottom margin if no image exists -->
+            <h4 class="card-title text-warning">@Guild.Name</h4>
+            @if (!string.IsNullOrEmpty(Guild.IconUrl))
+            {
+                <img class="card-img-top mb-2" src="@Guild.IconUrl?size=1024" alt="@Guild.Name Logo" />
+            }
+        </div>
+    </div>
+</a>
 
 @code {
+
     [Parameter]
-    public IEnumerable<DiscordGuild> Guilds { get; set; }
+    public DiscordGuild Guild { get; set; }
+
 }

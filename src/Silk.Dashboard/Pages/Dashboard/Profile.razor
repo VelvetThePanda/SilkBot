@@ -1,36 +1,26 @@
 ﻿@page "/Dashboard/Profile"
-
 @attribute [Authorize]
 
 @inherits ComponentBase
-@using Microsoft.AspNetCore.Http
-@using DSharpPlus
-@using Silk.Dashboard.Services
-
-@inject IHttpContextAccessor HttpContextAccessor
-@inject DiscordRestClientService RestClientService
 
 <div class="d-flex align-content-center">
     <div class="container text-center">
-        <img class="img-fluid mb-2 rounded-circle" src="@RestClientService.RestClient.CurrentUser.GetAvatarUrl(ImageFormat.Auto)" alt="Avatar URL" />
-        <h2>Hello, @RestClientService.RestClient.CurrentUser.Username</h2>
+        <img class="img-fluid mb-2 rounded-circle" src="@CurrentUserAvatar" alt="Avatar URL" />
+        <h2>Hello, @CurrentUserName</h2>
         <hr style="height: 1px; background-color: #ffffff" />
     </div>
 </div>
 
-
-<!--Since guilds is not populated instantly on page load, there needs to be a null check on guilds-->
 @if (_allGuilds is null)
 {
     <div class="container mt-4">
-        <Circle Size="100px" Center="true" Color="#337AB7"/>
+        <Circle Size="100px" Center="true" Color="#337AB7" />
     </div>
 }
 else
 {
     <div class="container">
-        <h3>Servers You Manage:</h3>
-        <br/>
-        <GuildView Guilds="@_ownedGuilds"/>
+        <h3 class="mb-2">Servers You Manage:</h3>
+        <GuildCollectionView Guilds="@_ownedGuilds" />
     </div>
 }

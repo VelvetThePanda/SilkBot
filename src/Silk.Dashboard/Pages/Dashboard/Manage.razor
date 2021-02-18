@@ -8,12 +8,13 @@
 @inject DiscordRestClientService RestClientService
 @inject NavigationManager NavigationManager
 
-@if(_guild is not null) {
+@if (_guild is not null)
+{
     <div class="d-flex align-content-center">
         <div class="container text-center">
             @if (!string.IsNullOrEmpty(_guild.IconUrl))
             {
-                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=1024" alt="@_guild.Name Logo" />
+                <img class="img-fluid mb-2 rounded-circle" src="@_guild.IconUrl?size=512" alt="@_guild.Name Logo" />
             }
             <h2>@_guild.Name</h2>
             <hr style="height: 1px; background-color: #ffffff" />
@@ -22,6 +23,7 @@
 }
 
 @code {
+
     [Parameter]
     public string GuildId { get; set; }
 
@@ -31,11 +33,13 @@
     {
         if (firstRender)
         {
-            _guild = RestClientService.GetGuildsByPermission(Permissions.ManageGuild).FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
-            
-            if(_guild is null)
+            _guild = RestClientService
+                .GetGuildsByPermission(Permissions.ManageGuild)
+                .FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
+
+            if (_guild is null)
                 NavigationManager.NavigateTo("/Dashboard/Profile");
-            
+
             StateHasChanged();
         }
     }
