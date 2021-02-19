@@ -10,8 +10,8 @@ using Silk.Data;
 namespace Silk.Data.Migrations
 {
     [DbContext(typeof(SilkDbContext))]
-    [Migration("20210218203225_Initial")]
-    partial class Initial
+    [Migration("20210218205412_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
