@@ -12,11 +12,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Silk Dashboard</title>
     <base href="~/" />
-    
-    <link rel="stylesheet" href="css/themes/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
 
     <link href="_content/BlazorPro.Spinkit/spinkit.min.css" rel="stylesheet" />
+
+    <link href="css/themes/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="Silk.Dashboard.styles.css" rel="stylesheet" />
 </head>
 <body>
 <component type="typeof(App)" render-mode="Server" />
@@ -32,10 +33,10 @@
     <a class="dismiss">🗙</a>
 </div>
 
+@* Need jQuery because of Bootswatch *@
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 <script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="_framework/blazor.server.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Silk.Data;
 using Silk.Data.Models;
 
-namespace Silk.Dashboard.Services
+namespace Silk.Dashboard.Extensions
 {
     public static class GuildConfigService
     {
@@ -12,9 +12,24 @@ namespace Silk.Dashboard.Services
 
         public static async Task<bool> ChangeConfig(this SilkDbContext context, ulong guildId, GuildConfig newConfig)
         {
-            var config = await context.GuildConfigs.GetConfig(guildId);
+            // TODO: if the config on the guild doesn't exist, need to create add the config to the guild
+            
+            Guild? guild = await context.Guilds
+                .Include(g => g.Configuration)
+                .FirstOrDefaultAsync(g => g.Id == guildId);
 
-            config = newConfig;
+            if (guild is null) return false;
+
+            GuildConfig? config = await context.GuildConfigs.GetConfig(guildId);
+            
+            // TODO: Check this logic?
+            if (config is null)
+            {
+                config = newConfig;
+                config.Guild = guild;
+                context.GuildConfigs.Attach(config);
+            }
+
             try
             {
                 await context.SaveChangesAsync();

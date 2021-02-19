@@ -9,9 +9,9 @@ namespace Silk.Dashboard.Pages.Dashboard
 {
     public partial class Profile : ComponentBase
     {
-        [Inject] 
+        [Inject]
         private DiscordRestClientService RestClientService { get; set; }
-        
+
         private IReadOnlyList<DiscordGuild> _allGuilds;
         private IReadOnlyList<DiscordGuild> _ownedGuilds;
 

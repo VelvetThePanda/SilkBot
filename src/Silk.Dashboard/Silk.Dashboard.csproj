@@ -24,14 +24,4 @@
       <ProjectReference Include="..\Silk.Extensions\Silk.Extensions.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Content Update="appSettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Include="appSettings.sample.json" />
-    </ItemGroup>
-
 </Project>

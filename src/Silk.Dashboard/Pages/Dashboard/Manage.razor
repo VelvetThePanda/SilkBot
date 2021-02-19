@@ -4,6 +4,7 @@
 @using DSharpPlus.Entities
 @using Silk.Dashboard.Services
 @using DSharpPlus
+@using Silk.Dashboard.Extensions
 @using Silk.Data
 @using Silk.Data.Models
 
@@ -11,20 +12,66 @@
 @inject NavigationManager NavigationManager
 @inject SilkDbContext SilkDbContext
 
+@* 
+TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view fields; 3. Clean up / refactor
+*@
+
 @if (_guild is not null)
 {
     <HeaderView ImageUrl="@_guild.IconUrl" Text="@_guild.Name" />
-    <EditForm Model="@_config" OnValidSubmit="@SaveChangesAsync">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        
-        @*<InputNumber id="MuteRoleId" @bind-Value="_config.MuteRoleId" />*@
-        <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers">
-            Greet Members
-        </InputCheckbox>
-        
-        <button class="btn btn-primary">Save Changes</button>
-    </EditForm>
+    <div class="container">
+        <EditForm Model="@_config" OnValidSubmit="@SaveChangesAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group mb-2">
+                <label for="MuteRoleId">Mute Role Id</label>
+                <input type="number" id="MuteRoleId" @bind-value="_config.MuteRoleId" @bind-value:event="oninput" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="GreetingChannel">Greeting Channel Id</label>
+                <input type="number" id="GreetingChannel" @bind-value="_config.GreetingChannel" @bind-value:event="oninput" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="GreetMembers">Greet Members</label>
+                <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="GreetingText">Greeting Text</label>
+                <textarea id="GreetingText" class="form-control" rows="2"
+                          placeholder="Welcome {@@u}! This is {@@s}, the best server around!"
+                          @bind-value="_config.GreetingText"
+                          @bind-value:event="oninput"></textarea>
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="GreetOnScreeningComplete">Greet On Screening Complete</label>
+                <InputCheckbox id="GreetOnScreeningComplete" @bind-Value="_config.GreetOnScreeningComplete" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="VerificationRole">Verification Role Id</label>
+                <input type="number" id="VerificationRole" @bind-value="_config.VerificationRole" @bind-value:event="oninput" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="GreetOnVerificationRole">Greet On Verification Role</label>
+                <InputCheckbox id="GreetOnVerificationRole" @bind-Value="_config.GreetOnVerificationRole" />
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="InfractionFormat">Infraction Format</label>
+                <textarea id="InfractionFormat" class="form-control" rows="2"
+                          @bind-value="_config.InfractionFormat"
+                          @bind-value:event="oninput"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+        </EditForm>
+    </div>
 }
 
 @code {
@@ -37,20 +84,29 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _guild = RestClientService
-            .GetGuildsByPermission(Permissions.ManageGuild)
+        _guild = (await RestClientService
+            .GetGuildsByPermissionAsync(Permissions.ManageGuild))
             .FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
 
         if (_guild is null)
+        {
             NavigationManager.NavigateTo("/Dashboard/Profile");
+        }
 
-        _config = await SilkDbContext.GuildConfigs.GetConfig(_guild.Id);
-        if (_config is null)
-            _config = new GuildConfig();
+        _config = await SilkDbContext.GuildConfigs.GetConfig(_guild.Id) ?? new GuildConfig
+        {
+            GuildId = ulong.Parse(this.GuildId),
+        };
     }
 
-    protected async Task SaveChangesAsync()
+    private async Task SaveChangesAsync()
     {
+        var guildId = ulong.Parse(this.GuildId);
         
+        _config.GuildId = guildId;
+
+        var updated = await SilkDbContext.ChangeConfig(guildId, _config);
+        Console.WriteLine(updated);
     }
+
 }

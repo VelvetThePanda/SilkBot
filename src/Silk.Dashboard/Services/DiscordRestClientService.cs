@@ -15,7 +15,6 @@ namespace Silk.Dashboard.Services
         public DiscordRestClient RestClient { get; }
 
         private bool _disposed;
-        private readonly IReadOnlyList<DiscordGuild> _guilds;
 
         // TODO: (optional) See if there's a way to add auth token to client on successful authentication
         public DiscordRestClientService(IHttpContextAccessor accessor)
@@ -33,15 +32,13 @@ namespace Silk.Dashboard.Services
 
             RestClient = new DiscordRestClient(config);
             RestClient.InitializeAsync().GetAwaiter().GetResult();
-
-            _guilds = RestClient.GetCurrentUserGuildsAsync(100, 0, 0).GetAwaiter().GetResult();
         }
 
         public async Task<IReadOnlyList<DiscordGuild>> GetAllGuildsAsync()
             => await RestClient.GetCurrentUserGuildsAsync(100, 0, 0);
 
-        public IReadOnlyList<DiscordGuild> GetGuildsByPermission(Permissions perms)
-            => _guilds.Where(g => (g.Permissions & perms) != 0).ToList();
+        public async Task<IReadOnlyList<DiscordGuild>> GetGuildsByPermissionAsync(Permissions perms)
+            => (await GetAllGuildsAsync()).Where(g => (g.Permissions & perms) != 0).ToList();
 
         public IReadOnlyList<DiscordGuild> GetGuildsByPermission(IReadOnlyList<DiscordGuild> guilds, Permissions perms)
             => guilds.Where(g => (g.Permissions & perms) != 0).ToList();
