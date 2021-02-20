@@ -1,18 +1,35 @@
 ﻿@page "/"
 
-<div class="jumbotron">
-    <h1>Welcome to the Silk Dashboard!</h1>
-    <p class="lead">Here you'll be able to view and set configurations for Silk visually.</p>
-    <hr style="height: 1px; background-color: white">
-    <AuthorizeView>
-        <NotAuthorized>
-            <h3>Please Login!</h3>
-            <p class="lead">
-                <a class="btn btn-primary btn-lg" href="Account/Login" role="button">Log In</a>
-            </p>
-        </NotAuthorized>
-        <Authorized>
-            
-        </Authorized>
-    </AuthorizeView>
+<div class="jumbotron mb-3 p-4">
+    <HeaderView Text="Welcome to Silk!" ImageUrl="https://files.velvetthepanda.dev/silk_stable.png">
+        <a href="https://example.com" target="_blank" class="btn btn-primary text-center">Invite Me!</a>
+    </HeaderView>
+    <h3 class="text-center mb-3">Meet my creators!</h3>
+    <OwnerCardCollectionView Owners="@_owners" />
+
+    @* <AuthorizeView> *@
+    @*     <NotAuthorized> *@
+    @*         <h3>Please Login!</h3> *@
+    @*         <p class="lead"> *@
+    @*             <a class="btn btn-primary btn-lg" href="Account/Login" role="button">Log In</a> *@
+    @*         </p> *@
+    @*     </NotAuthorized> *@
+    @*     <Authorized> *@
+    @* *@
+    @*     </Authorized> *@
+    @* </AuthorizeView> *@
 </div>
+
+@code {
+    private Dictionary<string, string> _owners;
+    
+    protected override void OnInitialized()
+    {
+        _owners = new Dictionary<string, string>()
+        {
+            {"NatsumiHB", "Infrastructure Admin and Helper"},
+            {"VelvetThePanda", "Founder and Lead Developer of Silk"},
+            {"CalebABG", "Dashboard Developer and Helper"}
+        };
+    }
+}

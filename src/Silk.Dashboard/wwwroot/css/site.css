@@ -4,6 +4,11 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.btn-primary {
+    background-color: #008000 !important;
+    border-color: #008000 !important;
+}
+
 .content {
     padding-top: 1.1rem;
 }

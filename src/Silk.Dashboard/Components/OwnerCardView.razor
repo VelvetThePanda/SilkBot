@@ -1,0 +1,20 @@
+﻿<div class="col-3 mx-4">
+    <div class="card h-100 text-center" style="border-color: white;">
+        <img class="card-img" src="https://github.com/@(Name).png" alt="Avatar of @Name" />
+        <div class="card-body">
+            <h5 div="card-title">
+                @Name
+            </h5>
+            <p class="card-text">
+                @Description
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public string Description { get; set; }
+}

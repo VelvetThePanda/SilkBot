@@ -2,9 +2,10 @@
     <div class="container text-center">
         @if (ImageUrl is not null)
         {
-            <img class="img-fluid mb-2 rounded-circle" src="@ImageUrl" alt="Avatar URL" />
+            <img class="img-fluid mb-2 rounded-circle" style="max-width: 256px;" src="@ImageUrl" alt="Avatar URL" />
         }
         <h2>@Text</h2>
+        @ChildContent
         <hr style="height: 1px; background-color: #ffffff" />
     </div>
 </div>
@@ -16,5 +17,7 @@
 
     [Parameter]
     public string Text { get; set; }
-
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 }

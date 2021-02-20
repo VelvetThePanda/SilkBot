@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Silk.Data;
 using Silk.Data.Models;
@@ -18,17 +19,27 @@ namespace Silk.Dashboard.Extensions
                 .Include(g => g.Configuration)
                 .FirstOrDefaultAsync(g => g.Id == guildId);
 
-            if (guild is null) return false;
-
-            GuildConfig? config = await context.GuildConfigs.GetConfig(guildId);
-            
-            // TODO: Check this logic?
-            if (config is null)
+            if (guild is null)
             {
-                config = newConfig;
-                config.Guild = guild;
-                context.GuildConfigs.Attach(config);
+                guild = new Guild()
+                {
+                    Id = guildId,
+                    Users = new List<User>(),
+                    Prefix = "s!",
+                    Configuration = new GuildConfig()
+                    {
+                        GuildId = guildId
+                    }
+                };
+                await context.Guilds.AddAsync(guild);
+                await context.SaveChangesAsync();
             }
+
+            var config = await context.GuildConfigs.GetConfig(guildId);
+
+            config = newConfig;
+            config.Guild = guild;
+            context.GuildConfigs.Attach(config);
 
             try
             {

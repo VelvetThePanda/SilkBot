@@ -11,6 +11,7 @@
 @inject DiscordRestClientService RestClientService
 @inject NavigationManager NavigationManager
 @inject SilkDbContext SilkDbContext
+@inject IToastService ToastService
 
 @* 
 TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view fields; 3. Clean up / refactor
@@ -18,60 +19,89 @@ TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view
 
 @if (_guild is not null)
 {
-    <HeaderView ImageUrl="@_guild.IconUrl" Text="@_guild.Name" />
-    <div class="container">
-        <EditForm Model="@_config" OnValidSubmit="@SaveChangesAsync">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+    <div class="jumbotron mb-3 p-4">
+        <HeaderView ImageUrl="@_guild.IconUrl" Text="@_guild.Name" />
+        <div class="container">
+            <EditForm Model="@_config" OnValidSubmit="@SaveChangesAsync">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-            <div class="form-group mb-2">
-                <label for="MuteRoleId">Mute Role Id</label>
-                <input type="number" id="MuteRoleId" @bind-value="_config.MuteRoleId" @bind-value:event="oninput" />
-            </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1" for="MuteRoleId">Mute Role Id</label> <br />
+                    <input type="number"
+                           class="input-group-text bg-white"
+                           id="MuteRoleId"
+                           @bind-value="_config.MuteRoleId"
+                           @bind-value:event="oninput" />
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="GreetingChannel">Greeting Channel Id</label>
-                <input type="number" id="GreetingChannel" @bind-value="_config.GreetingChannel" @bind-value:event="oninput" />
-            </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1" for="GreetingChannel">Greeting Channel Id</label> <br />
+                    <input type="number"
+                           class="input-group-text bg-white"
+                           id="GreetingChannel"
+                           @bind-value="_config.GreetingChannel"
+                           @bind-value:event="oninput" />
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="GreetMembers">Greet Members</label>
-                <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers" />
-            </div>
+                <div class="form-group mb-2">
+                    <label for="GreetMembers">Greet Members</label>
+                    <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers" />
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="GreetingText">Greeting Text</label>
-                <textarea id="GreetingText" class="form-control" rows="2"
-                          placeholder="Welcome {@@u}! This is {@@s}, the best server around!"
-                          @bind-value="_config.GreetingText"
-                          @bind-value:event="oninput"></textarea>
-            </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1" for="GreetingText">Greeting Text</label> <br />
+                    <textarea id="GreetingText" class="form-control" rows="2"
+                              placeholder="Welcome {@@u}! This is {@@s}, the best server around!"
+                              @bind-value="_config.GreetingText"
+                              @bind-value:event="oninput"></textarea>
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="GreetOnScreeningComplete">Greet On Screening Complete</label>
-                <InputCheckbox id="GreetOnScreeningComplete" @bind-Value="_config.GreetOnScreeningComplete" />
-            </div>
+                @if (_guild.Features.Contains("MEMBER_VERIFICATION_GATE_ENABLED"))
+                {
+                    <div class="form-group mb-2">
+                        <label for="GreetOnScreeningComplete">Greet On Screening Complete</label>
+                        <InputCheckbox id="GreetOnScreeningComplete" @bind-Value="_config.GreetOnScreeningComplete" />
+                    </div>
+                }
 
-            <div class="form-group mb-2">
-                <label for="VerificationRole">Verification Role Id</label>
-                <input type="number" id="VerificationRole" @bind-value="_config.VerificationRole" @bind-value:event="oninput" />
-            </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1" for="VerificationRole">Verification Role Id</label> <br />
+                    <input type="number"
+                           class="input-group-text bg-white"
+                           id="VerificationRole"
+                           @bind-value="_config.VerificationRole"
+                           @bind-value:event="oninput" />
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="GreetOnVerificationRole">Greet On Verification Role</label>
-                <InputCheckbox id="GreetOnVerificationRole" @bind-Value="_config.GreetOnVerificationRole" />
-            </div>
+                <div class="form-group mb-2">
+                    <label for="GreetOnVerificationRole">Greet On Verification Role</label>
+                    <InputCheckbox id="GreetOnVerificationRole" @bind-Value="_config.GreetOnVerificationRole" />
+                </div>
 
-            <div class="form-group mb-2">
-                <label for="InfractionFormat">Infraction Format</label>
-                <textarea id="InfractionFormat" class="form-control" rows="2"
-                          @bind-value="_config.InfractionFormat"
-                          @bind-value:event="oninput"></textarea>
-            </div>
+                <div class="form-group mb-3">
+                    <label class="mb-1" for="InfractionFormat">Infraction Format</label> <br />
+                    <textarea id="InfractionFormat" class="form-control" rows="2"
+                              @bind-value="_config.InfractionFormat"
+                              @bind-value:event="oninput"></textarea>
+                </div>
 
-            <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
-        </EditForm>
+                <button type="submit" class="btn btn-primary mt-2">Save Changes</button>
+            </EditForm>
+        </div>
     </div>
+    
+    <style>
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type=number] {
+            -moz-appearance:textfield;
+        }
+    </style>
 }
 
 @code {
@@ -106,6 +136,10 @@ TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view
         _config.GuildId = guildId;
 
         var updated = await SilkDbContext.ChangeConfig(guildId, _config);
+        if (!updated)
+            ToastService.ShowSuccess("Successfully saved config!");
+        else
+            ToastService.ShowError("Uh-oh! Something went wrong!");
         Console.WriteLine(updated);
     }
 

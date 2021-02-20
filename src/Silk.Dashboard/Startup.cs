@@ -1,5 +1,6 @@
 using System;
 using AspNet.Security.OAuth.Discord;
+using Blazored.Toast;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -35,6 +36,8 @@ namespace Silk.Dashboard
                 o.UseNpgsql(Configuration.GetConnectionString("dbConnection")));
 
             services.AddMediatR(typeof(SilkDbContext));
+            
+            services.AddBlazoredToast();
 
             services.AddAuthentication(opt =>
                 {

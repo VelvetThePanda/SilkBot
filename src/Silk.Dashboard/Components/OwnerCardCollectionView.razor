@@ -1,0 +1,13 @@
+﻿<div class="container">
+    <div class="row d-flex justify-content-center">
+        @foreach (var name in Owners.Keys)
+        {
+            <OwnerCardView Name="@name" Description="@(Owners[name])" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Dictionary<string, string> Owners { get; set; }
+}
