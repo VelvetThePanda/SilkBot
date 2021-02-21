@@ -13,7 +13,6 @@ using Serilog;
 using Serilog.Events;
 using Silk.Core.Utilities;
 using Silk.Core.Utilities.Bot;
-using Silk.Data;
 using Silk.Data.MediatR;
 
 namespace Silk.Core
@@ -29,9 +28,9 @@ namespace Silk.Core
         {
             Intents = DiscordIntents.Guilds | // Caching
                       DiscordIntents.GuildMembers | //Auto-mod/Auto-greet
-                      DiscordIntents.DirectMessages | // Commands & Auto-Mod
+                      DiscordIntents.DirectMessages | // CommandInvocations & Auto-Mod
                       DiscordIntents.GuildPresences | // Role-menu
-                      DiscordIntents.GuildMessages | // DM Commands
+                      DiscordIntents.GuildMessages | // DM CommandInvocations
                       DiscordIntents.GuildMessageReactions |
                       DiscordIntents.DirectMessageReactions, // Auto-mod,
             MessageCacheSize = 1024,
@@ -99,6 +98,7 @@ namespace Silk.Core
                     services.AddTransient(_ => new BotConfig(config));
 
                     services.AddHostedService<Bot>();
+                    
                     services.AddMediatR(typeof(Program));
                     services.AddMediatR(typeof(GuildRequest));
                 })

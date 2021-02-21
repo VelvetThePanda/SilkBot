@@ -7,7 +7,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Silk.Core.Commands.Furry.Utilities;
 using Silk.Core.Constants;
 using Silk.Data.MediatR;
 using Silk.Data.Models;
@@ -15,6 +14,7 @@ using Silk.Extensions;
 
 namespace Silk.Core.EventHandlers
 {
+    //This relies on multiple events to update its state, so we can't implement INotificationHandler.
     public class GuildAddedHandler
     {
         public static bool StartupCompleted { get; private set; }
@@ -37,7 +37,7 @@ namespace Silk.Core.EventHandlers
             _mediator = mediator;
             IReadOnlyDictionary<int, DiscordClient> shards = Bot.Instance!.Client.ShardClients;
             if (shards.Count is 0)
-                throw new ArgumentOutOfRangeException(nameof(DiscordClient.ShardCount), "Shards must be > 0");
+                throw new ArgumentOutOfRangeException(nameof(DiscordClient.ShardCount), "Shards must be greater than 0");
 
             foreach ((int key, _) in shards)
                 _shardStates.Add(key, new());
@@ -49,8 +49,8 @@ namespace Silk.Core.EventHandlers
         /// </summary>
         public async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs eventArgs)
         {
-            Guild guild = await _mediator.Send(new GuildRequest.GetOrCreateGuildRequest { GuildId = eventArgs.Guild.Id, Prefix = Bot.DefaultCommandPrefix });
-            int cachedMembers = await CacheGuildMembers(guild, eventArgs.Guild.Members.Values);
+            Guild guild = await _mediator.Send(new GuildRequest.GetOrCreate(eventArgs.Guild.Id, Bot.DefaultCommandPrefix));
+        int cachedMembers = await CacheGuildMembers(eventArgs.Guild.Members.Values);
             
             lock (_lock)
             {
@@ -99,7 +99,7 @@ namespace Silk.Core.EventHandlers
             await availableChannel.SendMessageAsync(builder);
         }
 
-        private async Task<int> CacheGuildMembers(Guild guild, IEnumerable<DiscordMember> members)
+        private async Task<int> CacheGuildMembers(IEnumerable<DiscordMember> members)
         {
             int staffCount = 0;
             IEnumerable<DiscordMember> staff = members.Where(m => !m.IsBot);
@@ -108,16 +108,17 @@ namespace Silk.Core.EventHandlers
             {
                 UserFlag flag = member.HasPermission(Permissions.Administrator) || member.IsOwner ? UserFlag.EscalatedStaff : UserFlag.Staff;
 
-                if ((await _mediator.Send(new UserRequest.GetUserRequest())) is var user and not null)
+                User? user = await _mediator.Send(new UserRequest.Get { UserId = member.Id, GuildId = member.Guild.Id });
+                if (user is not null)
                 {
                     user.Flags = user.Flags.Has(flag) ?
                         user.Flags.Remove(flag) :
                         user.Flags.Add(flag);
-                    await _mediator.Send(new UserRequest.UpdateUserRequest {UserId = user.Id, Flags = user.Flags});
+                    await _mediator.Send(new UserRequest.Update { UserId = member.Id, GuildId = member.Guild.Id, Flags = user.Flags });
                 }
                 else if (member.HasPermission(PermissionConstants.CacheFlag) || member.IsAdministrator() || member.IsOwner)
                 {
-                    _mediator.Send(new UserRequest.AddUserRequest {UserId = member.Id, GuildId = member.Guild.Id, Flags = flag}).GetAwaiter().GetResult();
+                    await _mediator.Send(new UserRequest.Add { UserId = member.Id, GuildId = member.Guild.Id, Flags = flag });
                     staffCount++;
                 }
             }

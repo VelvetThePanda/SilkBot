@@ -1,23 +1,26 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Silk.Core.Commands.General.Tickets;
+using Silk.Core.EventHandlers.Notifications;
 using Silk.Core.Services.Interfaces;
 
 namespace Silk.Core.EventHandlers.MessageAdded
 {
-    public class MessageAddedHandler
+    public class MessageCreatedHandler
     {
         private readonly TicketService _ticketService;
         private readonly IPrefixCacheService _prefixCache;
-        private readonly ILogger<MessageAddedHandler> _logger;
-        public MessageAddedHandler(TicketService ticketService, IPrefixCacheService prefixCache, ILogger<MessageAddedHandler> logger)
+        private readonly ILogger<MessageCreatedHandler> _logger;
+        public MessageCreatedHandler(TicketService ticketService, IPrefixCacheService prefixCache, ILogger<MessageCreatedHandler> logger)
         {
             _ticketService = ticketService;
             _prefixCache = prefixCache;
@@ -39,7 +42,7 @@ namespace Silk.Core.EventHandlers.MessageAdded
                 DiscordEmbed embed = TicketEmbedHelper.GenerateOutboundEmbed(e.Message.Content, e.Author);
                 try
                 {
-                    await member.SendMessageAsync(embed).ConfigureAwait(false);
+                    await member.SendMessageAsync(embed);
                 }
                 catch (UnauthorizedException)
                 {
@@ -52,38 +55,10 @@ namespace Silk.Core.EventHandlers.MessageAdded
             });
             return Task.CompletedTask;
         }
-
-        public Task Commands(DiscordClient c, MessageCreateEventArgs e)
+        
+        public async Task Handle(MessageCreated notification, CancellationToken cancellationToken)
         {
-            _ = Task.Run(async () =>
-            {
-                if (e.Author.IsBot || string.IsNullOrEmpty(e.Message.Content)) return;
-                CommandsNextExtension cnext = c.GetCommandsNext();
-
-                string prefix = _prefixCache.RetrievePrefix(e.Guild?.Id);
-
-                int prefixLength =
-                    e!.Channel.IsPrivate ? 0 : // No prefix in DMs, else try to get the string prefix length. //
-                        e.MentionedUsers.Any(u => u.Id == c.CurrentUser.Id) ?
-                            e.Message.GetMentionPrefixLength(c.CurrentUser) :
-                            e.Message.GetStringPrefixLength(prefix);
-
-                if (prefixLength is -1) return;
-
-                string commandString = e.Message.Content.Substring(prefixLength);
-
-                Command? command = cnext.FindCommand(commandString, out string arguments);
-
-                if (command is null)
-                {
-                    _logger.LogWarning($"Command not found: {e.Message.Content}");
-                    return;
-                }
-                CommandContext context = cnext.CreateContext(e.Message, prefix, command, arguments);
-
-                await cnext.ExecuteCommandAsync(context).ConfigureAwait(false);
-            });
-            return Task.CompletedTask;
+            throw new System.NotImplementedException();
         }
     }
 }

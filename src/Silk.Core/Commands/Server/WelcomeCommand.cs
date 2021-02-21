@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
@@ -9,7 +7,6 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
-using Humanizer;
 using MediatR;
 using Silk.Core.Constants;
 using Silk.Core.Services.Interfaces;
@@ -45,7 +42,7 @@ namespace Silk.Core.Commands.Server
             DiscordMessage msg = null!;
             
             DiscordMessageBuilder builder = new DiscordMessageBuilder().WithoutMentions().WithReply(ctx.Message.Id);
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.GetGuildConfigRequest {GuildId = ctx.Guild.Id});
+            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get {GuildId = ctx.Guild.Id});
             InteractivityExtension interactivity = ctx.Client.GetInteractivity();
             
             if (config.GreetingChannel is 0) 
@@ -95,7 +92,7 @@ namespace Silk.Core.Commands.Server
                                         
                 builder.WithReply(msg.Id)
                     .WithContent("Great, I'll greet people when they complete membership screening!");
-                var request = new GuildConfigRequest.UpdateGuildConfigRequest
+                var request = new GuildConfigRequest.Update
                 {
                     GuildId = ctx.Guild.Id,
                     GreetMembers = true,
@@ -135,7 +132,7 @@ namespace Silk.Core.Commands.Server
             {
                 builder.WithReply(msg.Id).WithContent("Alright, I'll greet people as they join!");
                 await ctx.RespondAsync(builder);
-                var request = new GuildConfigRequest.UpdateGuildConfigRequest
+                var request = new GuildConfigRequest.Update
                 {
                     GuildId = ctx.Guild.Id,
                     GreetMembers = true,
@@ -166,7 +163,7 @@ namespace Silk.Core.Commands.Server
             }
 
             ulong role = res.Result.MentionedRoles[0].Id;
-            var request = new GuildConfigRequest.UpdateGuildConfigRequest
+            var request = new GuildConfigRequest.Update
             {
                 GuildId = ctx.Guild.Id,
                 GreetingText = message,
@@ -198,7 +195,7 @@ namespace Silk.Core.Commands.Server
                 config.GreetingChannel = result.Result.MentionedChannels[0].Id;
                 builder.WithContent($"Alright, {result.Result.MentionedChannels[0].Mention} it is :)").WithReply(result.Result.Id);
                 await ctx.RespondAsync(builder);
-                await _mediator.Send(new GuildConfigRequest.UpdateGuildConfigRequest {GuildId = ctx.Guild.Id, GreetingChannelId = result.Result.MentionedChannels[0].Id});
+                await _mediator.Send(new GuildConfigRequest.Update {GuildId = ctx.Guild.Id, GreetingChannelId = result.Result.MentionedChannels[0].Id});
             }
         }
     }
