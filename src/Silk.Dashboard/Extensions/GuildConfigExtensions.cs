@@ -14,7 +14,7 @@ namespace Silk.Dashboard.Extensions
         public static async Task<bool> ChangeConfig(this SilkDbContext context, ulong guildId, GuildConfig newConfig)
         {
             // TODO: if the config on the guild doesn't exist, need to create add the config to the guild
-            
+
             Guild? guild = await context.Guilds
                 .Include(g => g.Configuration)
                 .FirstOrDefaultAsync(g => g.Id == guildId);

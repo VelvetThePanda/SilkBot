@@ -1,4 +1,3 @@
-using System;
 using AspNet.Security.OAuth.Discord;
 using Blazored.Toast;
 using MediatR;
@@ -27,17 +26,19 @@ namespace Silk.Dashboard
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-
+            services.AddBlazoredToast();
+            
             services.AddHttpContextAccessor();
             
+            // TODO: Add Research/Add other protections against token scraping/stealing
+            services.AddDataProtection();
+
             services.AddScoped<DiscordRestClientService>();
 
             services.AddDbContext<SilkDbContext>(o =>
                 o.UseNpgsql(Configuration.GetConnectionString("dbConnection")));
 
             services.AddMediatR(typeof(SilkDbContext));
-            
-            services.AddBlazoredToast();
 
             services.AddAuthentication(opt =>
                 {

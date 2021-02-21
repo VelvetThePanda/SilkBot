@@ -1,5 +1,13 @@
 ﻿@using Blazored.Toast.Configuration
+
 @inherits LayoutComponentBase
+
+<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="10"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast-override"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-times" />
 
 <div class="main">
     <NavBar />
@@ -7,12 +15,4 @@
     <div class="content px-2">
         @Body
     </div>
-    
-    
-    <BlazoredToasts Position="ToastPosition.BottomRight"
-                    Timeout="10"
-                    IconType="IconType.FontAwesome"
-                    SuccessClass="success-toast-override"
-                    SuccessIcon="fa fa-thumbs-up"
-                    ErrorIcon="fa fa-times" />
 </div>

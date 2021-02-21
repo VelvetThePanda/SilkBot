@@ -9,16 +9,14 @@ namespace Silk.Dashboard.Pages.Dashboard
 {
     public partial class Profile : ComponentBase
     {
-        [Inject]
-        private DiscordRestClientService RestClientService { get; set; }
+        [Inject] private DiscordRestClientService RestClientService { get; set; }
 
-        private IReadOnlyList<DiscordGuild> _allGuilds;
         private IReadOnlyList<DiscordGuild> _ownedGuilds;
 
         protected override async Task OnInitializedAsync()
         {
-            _allGuilds = await RestClientService.GetAllGuildsAsync();
-            _ownedGuilds = RestClientService.GetGuildsByPermission(_allGuilds, Permissions.ManageGuild);
+            var allGuilds = await RestClientService.GetAllGuildsAsync();
+            _ownedGuilds = RestClientService.GetGuildsByPermission(allGuilds, Permissions.ManageGuild);
         }
 
         private string CurrentUserAvatar => RestClientService.RestClient.CurrentUser.GetAvatarUrl(ImageFormat.Auto);

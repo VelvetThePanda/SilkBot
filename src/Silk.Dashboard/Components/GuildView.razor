@@ -14,6 +14,7 @@
 </a>
 
 @code {
+
     [Parameter]
     public DiscordGuild Guild { get; set; }
 
@@ -23,7 +24,7 @@
     protected override void OnInitialized()
     {
         if (!string.IsNullOrEmpty(Guild.IconUrl)) return;
-        
+
         _hasIcon = false;
         _headerClass = "mb-0";
     }

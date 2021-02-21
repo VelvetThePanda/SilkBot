@@ -1,23 +1,19 @@
 ﻿@page "/Dashboard/Manage/{GuildId}"
 @attribute [Authorize]
 
-@using DSharpPlus.Entities
-@using Silk.Dashboard.Services
-@using DSharpPlus
-@using Silk.Dashboard.Extensions
-@using Silk.Data
-@using Silk.Data.Models
-
-@inject DiscordRestClientService RestClientService
-@inject NavigationManager NavigationManager
-@inject SilkDbContext SilkDbContext
-@inject IToastService ToastService
+@inherits ComponentBase
 
 @* 
 TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view fields; 3. Clean up / refactor
 *@
 
-@if (_guild is not null)
+@if (_guild is null)
+{
+    <div class="container mt-4">
+        <Circle Size="100px" Center="true" Color="#337AB7" />
+    </div>
+}
+else
 {
     <div class="jumbotron mb-3 p-4">
         <HeaderView ImageUrl="@_guild.IconUrl" Text="@_guild.Name" />
@@ -90,7 +86,7 @@ TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view
             </EditForm>
         </div>
     </div>
-    
+
     <style>
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button {
@@ -102,45 +98,4 @@ TODO: 1. Split file into code-behind; 2. Add rest of properties in Model as view
             -moz-appearance:textfield;
         }
     </style>
-}
-
-@code {
-
-    [Parameter]
-    public string GuildId { get; set; }
-
-    private DiscordGuild _guild;
-    private GuildConfig _config;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _guild = (await RestClientService
-            .GetGuildsByPermissionAsync(Permissions.ManageGuild))
-            .FirstOrDefault(g => g.Id == ulong.Parse(GuildId));
-
-        if (_guild is null)
-        {
-            NavigationManager.NavigateTo("/Dashboard/Profile");
-        }
-
-        _config = await SilkDbContext.GuildConfigs.GetConfig(_guild.Id) ?? new GuildConfig
-        {
-            GuildId = ulong.Parse(this.GuildId),
-        };
-    }
-
-    private async Task SaveChangesAsync()
-    {
-        var guildId = ulong.Parse(this.GuildId);
-        
-        _config.GuildId = guildId;
-
-        var updated = await SilkDbContext.ChangeConfig(guildId, _config);
-        if (!updated)
-            ToastService.ShowSuccess("Successfully saved config!");
-        else
-            ToastService.ShowError("Uh-oh! Something went wrong!");
-        Console.WriteLine(updated);
-    }
-
 }

@@ -6,30 +6,19 @@
     </HeaderView>
     <h3 class="text-center mb-3">Meet my creators!</h3>
     <OwnerCardCollectionView Owners="@_owners" />
-
-    @* <AuthorizeView> *@
-    @*     <NotAuthorized> *@
-    @*         <h3>Please Login!</h3> *@
-    @*         <p class="lead"> *@
-    @*             <a class="btn btn-primary btn-lg" href="Account/Login" role="button">Log In</a> *@
-    @*         </p> *@
-    @*     </NotAuthorized> *@
-    @*     <Authorized> *@
-    @* *@
-    @*     </Authorized> *@
-    @* </AuthorizeView> *@
 </div>
 
 @code {
     private Dictionary<string, string> _owners;
-    
+
     protected override void OnInitialized()
     {
-        _owners = new Dictionary<string, string>()
+        _owners = new Dictionary<string, string>
         {
             {"NatsumiHB", "Infrastructure Admin and Helper"},
             {"VelvetThePanda", "Founder and Lead Developer of Silk"},
             {"CalebABG", "Dashboard Developer and Helper"}
         };
     }
+
 }

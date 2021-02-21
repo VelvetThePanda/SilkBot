@@ -5,7 +5,7 @@
 
 <HeaderView ImageUrl="@CurrentUserAvatar" Text="@($"Hello, {CurrentUserName}")" />
 
-@if (_allGuilds is null)
+@if (_ownedGuilds is null)
 {
     <div class="container mt-4">
         <Circle Size="100px" Center="true" Color="#337AB7" />
