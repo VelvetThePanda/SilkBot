@@ -10,8 +10,8 @@ using Silk.Data;
 namespace Silk.Data.Migrations
 {
     [DbContext(typeof(SilkDbContext))]
-    [Migration("20210220144844_CommandList")]
-    partial class CommandList
+    [Migration("20210223015848_CTConstraint")]
+    partial class CTConstraint
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -62,6 +62,33 @@ namespace Silk.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CommandInvocations");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.DisabledCommand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("CommandName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("GuildConfigId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildConfigId");
+
+                    b.HasIndex("GuildId", "CommandName")
+                        .IsUnique();
+
+                    b.ToTable("DisabledCommand");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.GlobalUser", b =>
@@ -352,6 +379,21 @@ namespace Silk.Data.Migrations
                     b.Navigation("Guild");
                 });
 
+            modelBuilder.Entity("Silk.Data.Models.DisabledCommand", b =>
+                {
+                    b.HasOne("Silk.Data.Models.GuildConfig", null)
+                        .WithMany("DisabledCommands")
+                        .HasForeignKey("GuildConfigId");
+
+                    b.HasOne("Silk.Data.Models.Guild", "Guild")
+                        .WithMany()
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+                });
+
             modelBuilder.Entity("Silk.Data.Models.GuildConfig", b =>
                 {
                     b.HasOne("Silk.Data.Models.Guild", "Guild")
@@ -423,6 +465,8 @@ namespace Silk.Data.Migrations
                     b.Navigation("AllowedInvites");
 
                     b.Navigation("BlackListedWords");
+
+                    b.Navigation("DisabledCommands");
 
                     b.Navigation("SelfAssignableRoles");
                 });
