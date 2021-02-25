@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using System.Timers;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Silk.Core.Services.Interfaces;
 using Silk.Core.Utilities;
+using Silk.Data.MediatR;
 using Silk.Data.Models;
 
 namespace Silk.Core.Services
@@ -15,20 +17,19 @@ namespace Silk.Core.Services
     /// <inheritdoc cref="IInfractionService"/>
     public sealed class InfractionService : IInfractionService
     {
-
-        private readonly ConfigService _configService;
         private readonly IDatabaseService _dbService;
         private readonly ILogger<InfractionService> _logger;
         private readonly DiscordShardedClient _client;
-
+        private readonly IMediator _mediator;
         private readonly List<Infraction> _tempInfractions = new();
 
-        public InfractionService(ConfigService configService, IDatabaseService dbService, ILogger<InfractionService> logger, DiscordShardedClient client)
+        public InfractionService(IDatabaseService dbService, ILogger<InfractionService> logger, DiscordShardedClient client, IMediator mediator)
         {
-            _configService = configService;
+            
             _dbService = dbService;
             _logger = logger;
             _client = client;
+            _mediator = mediator;
             Timer timer = new(TimeSpan.FromSeconds(30).TotalMilliseconds);
             timer.Elapsed += async (_, _) => await OnTick();
             timer.Start();
@@ -41,7 +42,7 @@ namespace Silk.Core.Services
         {
             // Validation is handled by the command class. //
             _ = member.RemoveAsync(infraction.Reason);
-            GuildConfig config = await _configService.GetConfigAsync(member.Guild.Id);
+            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(member.Guild.Id));
 
             if (config.LoggingChannel is 0)
                 _logger.LogTrace($"No available log channel for guild! | {member.Guild.Id}");
@@ -54,7 +55,7 @@ namespace Silk.Core.Services
         public async Task BanAsync(DiscordMember member, DiscordChannel channel, Infraction infraction)
         {
             await member.BanAsync(0, infraction.Reason);
-            GuildConfig config = await _configService.GetConfigAsync(member.Guild.Id);
+            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(member.Guild.Id));
             await ApplyInfractionAsync(infraction.User, infraction);
             if (config.LoggingChannel is 0)
             {
@@ -79,32 +80,54 @@ namespace Silk.Core.Services
 
         public async Task MuteAsync(DiscordMember member, DiscordChannel channel, Infraction infraction)
         {
-            GuildConfig config = await _configService.GetConfigAsync(infraction.User.Guild.Id);
+            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(member.Guild.Id));
 
             if (!channel.Guild.Roles.TryGetValue(config.MuteRoleId, out DiscordRole? muteRole))
             {
                 await channel.SendMessageAsync("Mute role doesn't exist on server!");
                 return;
             }
-            User user = await _dbService.GetOrCreateGuildUserAsync(member.Guild.Id, member.Id);
+            
+            User user = await _mediator.Send(new UserRequest.GetOrCreate(member.Guild.Id, member.Id));
             if (user.Flags.HasFlag(UserFlag.ActivelyMuted))
             {
-                Infraction inf = user.Infractions.Last(i => i.HeldAgainstUser &&
-                                                            i.InfractionType is (InfractionType.AutoModMute or InfractionType.Mute) &&
-                                                            i.Expiration > DateTime.Now);
+                Infraction? inf = user
+                    .Infractions
+                    .LastOrDefault(i => 
+                        i.HeldAgainstUser &&
+                        i.InfractionType is (InfractionType.AutoModMute or InfractionType.Mute) /* &&
+                        i.Expiration > DateTime.Now*/ /* I don't think this is needed. */);
+                if (inf is null) return;
                 inf.Expiration = infraction.Expiration;
-                await _dbService.UpdateGuildUserAsync(user);
+                await _mediator.Send(new UserRequest.Update(member.Guild.Id, member.Id) {Infractions = user.Infractions});
+                _logger.LogTrace($"Updated mute for {member.Id}!");
                 return;
             }
 
-            await member.GrantRoleAsync(muteRole);
-
-
+            if (!member.Roles.Contains(muteRole))
+                await member.GrantRoleAsync(muteRole);
+            
             await ApplyInfractionAsync(user, infraction);
 
-
-            _tempInfractions.Add(infraction);
-            _logger.LogTrace($"Added temporary infraction to {member.Id}!");
+            if (infraction.Expiration is not null)
+            {
+                if (!_tempInfractions.Contains(infraction))
+                {
+                    _tempInfractions.Add(infraction);
+                    _logger.LogTrace($"Added temporary infraction to {member.Id}!");
+                }
+                else
+                {
+                    var inf = _tempInfractions.Single(m => m.InfractionType is InfractionType.Mute && m.UserId == member.Id);
+                    var index = _tempInfractions.IndexOf(inf);
+                    _tempInfractions[index] = infraction;
+                }
+            }
+            else
+            {
+                _logger.LogTrace($"Applied indefinite mute to {member.Id}!");
+            }
+            
         }
 
         /// <summary>
@@ -119,7 +142,7 @@ namespace Silk.Core.Services
         /// </remarks>
         public async Task<Infraction> CreateInfractionAsync(DiscordMember member, DiscordMember enforcer, InfractionType type, string reason = "Not given.")
         {
-            User user = await _dbService.GetOrCreateGuildUserAsync(member.Guild.Id, member.Id);
+            User user = await _mediator.Send(new UserRequest.GetOrCreate(member.Guild.Id, member.Id));
             Infraction infraction = new()
             {
                 Enforcer = enforcer.Id,
@@ -131,7 +154,7 @@ namespace Silk.Core.Services
             user.Infractions.Add(infraction);
             // We will handle having automatic infractions later //
             // This will have a method to accompany it soon™️ //
-            await _dbService.UpdateGuildUserAsync(user);
+            await _mediator.Send(new UserRequest.Update(member.Guild.Id, member.Id) {Infractions = user.Infractions});
             return infraction;
         }
 
@@ -147,13 +170,13 @@ namespace Silk.Core.Services
 
         public async Task<bool> ShouldAddInfractionAsync(DiscordMember member)
         {
-            User? user = await _dbService.GetGuildUserAsync(member.Guild.Id, member.Id);
+            User? user = await _mediator.Send(new UserRequest.Get(member.Guild.Id, member.Id));
             return !user?.Flags.HasFlag(UserFlag.InfractionExemption) ?? true;
         }
 
         public async Task<bool> HasActiveMuteAsync(DiscordMember member)
         {
-            User? user = await _dbService.GetGuildUserAsync(member.Guild.Id, member.Id);
+            User? user = await _mediator.Send(new UserRequest.Get(member.Guild.Id, member.Id));
             return user?.Flags.HasFlag(UserFlag.ActivelyMuted) ?? false;
         }
 
@@ -176,10 +199,12 @@ namespace Silk.Core.Services
             if (!guild.Members.TryGetValue(inf.UserId, out DiscordMember? mutedMember))
             {
                 _logger.LogTrace("Cannot unmute member outside of guild!");
+                //Infractions are removed outside of these methods.
             }
             else
             {
                 await mutedMember.RevokeRoleAsync(guild.Roles[config.MuteRoleId], "Temporary mute expired.");
+                inf.HeldAgainstUser = false;
                 _logger.LogTrace($"Unmuted {inf.UserId} | TempMute expired.");
             }
         }
@@ -200,27 +225,41 @@ namespace Silk.Core.Services
         private async Task OnTick()
         {
             if (_tempInfractions.Count is 0) return;
-            IEnumerable<IGrouping<ulong, Infraction>> infractions = _tempInfractions
+            var infractions = _tempInfractions
                 .Where(i => ((DateTime) i.Expiration!).Subtract(DateTime.Now).Seconds < 0)
                 .GroupBy(x => x.User.Guild.Id);
+            
             foreach (var inf in infractions)
             {
                 _logger.LogTrace($"Processing infraction in guild {inf.Key}");
-                DiscordGuild guild = _client.ShardClients.Values.SelectMany(s => s.Guilds.Values).First(g => g.Id == inf.Key);
-                GuildConfig config = await _configService.GetConfigAsync(guild.Id);
+                DiscordGuild? guild = _client.ShardClients.Values.SelectMany(s => s.Guilds.Values).FirstOrDefault(g => g.Id == inf.Key);
+
+                if (guild is null)
+                {
+                    _logger.LogWarning($"Guild was removed from cache! Dropping infractions from guild {inf.Key}");
+                    DropInfractions(inf.Key);
+                    return;
+                }
+                
+                GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(inf.Key));
+                
                 foreach (Infraction infraction in inf)
                 {
                     _logger.LogTrace($"Infraction {infraction.Id} | User {infraction.UserId}");
                     Task task = infraction.InfractionType switch
                     {
-                        InfractionType.SoftBan => ProcessSoftBanAsync(guild, config, infraction),
-                        InfractionType.AutoModMute or InfractionType.Mute => ProcessTempMuteAsync(guild, config, infraction),
+                        InfractionType.SoftBan => ProcessSoftBanAsync(guild!, config, infraction),
+                        InfractionType.AutoModMute or InfractionType.Mute => ProcessTempMuteAsync(guild!, config, infraction),
                         _ => throw new ArgumentException("Type is not temporary infraction!")
                     };
                     await task;
                     _tempInfractions.Remove(infraction);
                 }
             }
+        }
+        private void DropInfractions(ulong guildId)
+        {
+            _tempInfractions.RemoveAll(i => i.User.GuildId == guildId);
         }
 
         private void LoadInfractions()
