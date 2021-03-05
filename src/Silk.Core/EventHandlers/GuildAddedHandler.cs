@@ -49,8 +49,7 @@ namespace Silk.Core.EventHandlers
         /// </summary>
         public async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs eventArgs)
         {
-            Guild guild = await _mediator.Send(new GuildRequest.GetOrCreate(eventArgs.Guild.Id, Bot.DefaultCommandPrefix));
-        int cachedMembers = await CacheGuildMembers(eventArgs.Guild.Members.Values);
+            int cachedMembers = await CacheGuildMembers(eventArgs.Guild.Members.Values);
             
             lock (_lock)
             {
@@ -60,12 +59,22 @@ namespace Silk.Core.EventHandlers
                 _shardStates[client.ShardId] = state;
                 if (!StartupCompleted)
                 {
-                    string message = $"Cached Guild! Shard [{client.ShardId + 1}/{Bot.Instance!.Client.ShardClients.Count}] → Guild [{state.CachedGuilds}/{client.Guilds.Count}]";
-                    message += cachedMembers is 0 ?
-                        " → Staff [No new staff!]" :
-                        $" → Staff [{cachedMembers}/{eventArgs.Guild.Members.Count}]";
-
-                    _logger.LogDebug(message);
+                    string message;
+                    if (cachedMembers is 0)
+                    {
+                        message = "Cached Guild! Shard [{shard}/{shards}] → Guild [{currentGuild}/{guilds}] → Staff [No new staff!]";
+                        _logger.LogDebug(message, client.ShardId + 1,
+                            Bot.Instance!.Client.ShardClients.Count,
+                            state.CachedGuilds, client.Guilds.Count);
+                    }
+                    else
+                    {
+                        message = "Cached Guild! Shard [{shard}/{shards}] → Guild [{currentGuild}/{guilds}] → Staff [{members}/{allMembers}]";
+                        _logger.LogDebug(message, client.ShardId + 1, 
+                            Bot.Instance!.Client.ShardClients.Count, 
+                            state.CachedGuilds,  client.Guilds.Count, 
+                            cachedMembers, eventArgs.Guild.Members.Count);
+                    }
                 }
             }
         }
@@ -94,6 +103,13 @@ namespace Silk.Core.EventHandlers
             var builder = new DiscordEmbedBuilder()
                 .WithTitle("Thank you for adding me!")
                 .WithColor(new("94f8ff"))
+                .WithDescription("Thank you for adding me :) I'll keep it short, " +
+                                 "I'm a bot developed by several international programmers with the goal of making a better bot for the masses.\n\n" +
+                                 "I'm a Free & Open-Source Software (FOSS) bot, but programming takes time, and time is money. If you feel our efforts " +
+                                 "are worth being paid for, you can become a patron [here](https://patreon.com/VelvetThePanda), or if you just want to " +
+                                 "tip, you can donate to the [Ko-Fi](https://ko-fi.com/VelvetThePanda).\n\n" +
+                                 "If you're curious to see what makes me tick, the \nsource code is available on [GitHub](https://github.com/VelvetThePanda/Silk)~!\n" +
+                                 "Nonetheless, we hope you enjoy my features :)")
                 .WithThumbnail("https://files.velvetthepanda.dev/silk.png")
                 .WithFooter("Did I break? DM me ticket create [message] and I'll forward it to the owners <3");
             await availableChannel.SendMessageAsync(builder);
@@ -127,7 +143,7 @@ namespace Silk.Core.EventHandlers
                             user.Flags.Remove(f);
                         }
                     }
-                    await _mediator.Send(new UserRequest.Update(member.Guild.Id, member.Id) {Flags = user.Flags});
+                    await _mediator.Send(new UserRequest.Update(member.Guild.Id, member.Id, user.Flags));
                 }
                 else if (member.HasPermission(FlagConstants.CacheFlag) || member.IsAdministrator() || member.IsOwner)
                 {

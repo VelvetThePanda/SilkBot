@@ -6,8 +6,10 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using MediatR;
 using Silk.Core.Services.Interfaces;
 using Silk.Core.Utilities.HelpFormatter;
+using Silk.Data.MediatR;
 using Silk.Data.Models;
 
 namespace Silk.Core.Commands.Economy
@@ -15,20 +17,27 @@ namespace Silk.Core.Commands.Economy
     [Category(Categories.Economy)]
     public class DonateCommand : BaseCommandModule
     {
-        private readonly IDatabaseService _dbService;
+        private readonly IMediator _mediator;
         private readonly HashSet<ulong> _activeTransactions = new();
-        public DonateCommand(IDatabaseService dbService)
+        public DonateCommand(IMediator mediator)
         {
-            _dbService = dbService;
+            _mediator = mediator;
         }
+
 
         [Command("donate")]
         [Aliases("gift")]
         [Description("Send a Guild member some sweet cash!")]
         public async Task Donate(CommandContext ctx, uint amount, DiscordMember recipient)
         {
-            GlobalUser sender = await _dbService.GetOrCreateGlobalUserAsync(ctx.User.Id);
-            GlobalUser receiver = await _dbService.GetOrCreateGlobalUserAsync(recipient.Id);
+            if (ctx.Member == recipient)
+            {
+                await ctx.RespondAsync("You can't send money to yourself, heh.");
+                return;
+            }
+            
+            GlobalUser sender = await _mediator.Send(new GlobalUserRequest.GetOrCreate(ctx.User.Id));
+            GlobalUser receiver = await _mediator.Send(new GlobalUserRequest.GetOrCreate(recipient.Id));
 
             if (receiver == sender)
             {
@@ -49,13 +58,9 @@ namespace Silk.Core.Commands.Economy
             {
                 await DoTransactionAsync(ctx, amount, sender, receiver!);
             }
-
-
-            await _dbService.UpdateGlobalUserAsync(receiver!);
-            await _dbService.UpdateGlobalUserAsync(sender!);
         }
 
-        private static async Task DoTransactionAsync(CommandContext ctx, uint amount, GlobalUser sender, GlobalUser receiver)
+        private async Task DoTransactionAsync(CommandContext ctx, uint amount, GlobalUser sender, GlobalUser receiver)
         {
             // We use uint as an easier way of anti fraud protection; people would put a negative number and essentially steal money from others. //
             DiscordMember member = await ctx.Guild.GetMemberAsync(receiver.Id);
@@ -69,11 +74,13 @@ namespace Silk.Core.Commands.Economy
             receiver.Cash += (int) amount;
 
             await ctx.RespondAsync(embed);
+            
+            await _mediator.Send(new GlobalUserRequest.Update(sender.Id) {Cash = sender.Cash});
+            await _mediator.Send(new GlobalUserRequest.Update(receiver.Id) {Cash = receiver.Cash});
         }
 
         private static async Task VerifyTransactionAsync(CommandContext ctx, GlobalUser sender, GlobalUser receiver, uint amount)
-        {
-
+        { 
             // 'Complicated async logic here' //
             InteractivityExtension interactivity = ctx.Client.GetInteractivity();
             int authKey = new Random().Next(1000, 10000);

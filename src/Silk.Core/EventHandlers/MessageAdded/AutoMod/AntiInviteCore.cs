@@ -44,7 +44,8 @@ namespace Silk.Core.EventHandlers.MessageAdded.AutoMod
         {
             if (!config.BlacklistInvites) return false;
             if (message.Channel.IsPrivate) return false;
-
+            if (message.Author.IsBot) return false;
+            
             Regex scanPattern = config.UseAggressiveRegex ? AggressiveRegexPattern : LenientRegexPattern;
             Match match = scanPattern.Match(message.Content);
             
@@ -106,7 +107,7 @@ namespace Silk.Core.EventHandlers.MessageAdded.AutoMod
             if (shouldPunish && config.WarnOnMatchedInvite)
             {
                 var infraction = await infractionService. CreateInfractionAsync((DiscordMember) message.Author,
-                    message.Channel.Guild.CurrentMember, InfractionType.Ignore, "[AUTO-MOD] Sending an invite link");
+                    message.Channel.Guild.CurrentMember, InfractionType.Warn, "[AUTO-MOD] Sending an invite link");
                 await infractionService.ProgressInfractionStepAsync((DiscordMember) message.Author, infraction);
             }
         }

@@ -218,6 +218,12 @@ namespace Silk.Data.Migrations
                     b.Property<DateTime?>("Expiration")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<bool>("Handled")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("HeldAgainstUser")
                         .HasColumnType("boolean");
 
@@ -231,17 +237,37 @@ namespace Silk.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("UserDatabaseId")
-                        .HasColumnType("bigint");
-
                     b.Property<decimal>("UserId")
                         .HasColumnType("numeric(20,0)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserDatabaseId");
+                    b.HasIndex("GuildId");
 
                     b.ToTable("Infractions");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.InfractionStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("ConfigId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("Expiration")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConfigId");
+
+                    b.ToTable("InfractionStep");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.Invite", b =>
@@ -273,17 +299,53 @@ namespace Silk.Data.Migrations
                     b.Property<decimal>("Id")
                         .HasColumnType("numeric(20,0)");
 
-                    b.Property<decimal>("GuildConfigId")
-                        .HasColumnType("numeric(20,0)");
-
-                    b.Property<int?>("GuildConfigId1")
+                    b.Property<int?>("GuildConfigId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GuildConfigId1");
+                    b.HasIndex("GuildConfigId");
 
                     b.ToTable("SelfAssignableRole");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("OriginalTagId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("OwnerId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int>("Uses")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId");
+
+                    b.HasIndex("OriginalTagId");
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.Ticket", b =>
@@ -408,13 +470,24 @@ namespace Silk.Data.Migrations
 
             modelBuilder.Entity("Silk.Data.Models.Infraction", b =>
                 {
-                    b.HasOne("Silk.Data.Models.User", "User")
+                    b.HasOne("Silk.Data.Models.Guild", "Guild")
                         .WithMany("Infractions")
-                        .HasForeignKey("UserDatabaseId")
+                        .HasForeignKey("GuildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.InfractionStep", b =>
+                {
+                    b.HasOne("Silk.Data.Models.GuildConfig", "Config")
+                        .WithMany("InfractionSteps")
+                        .HasForeignKey("ConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Config");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.Invite", b =>
@@ -428,7 +501,22 @@ namespace Silk.Data.Migrations
                 {
                     b.HasOne("Silk.Data.Models.GuildConfig", null)
                         .WithMany("SelfAssignableRoles")
-                        .HasForeignKey("GuildConfigId1");
+                        .HasForeignKey("GuildConfigId");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.Tag", b =>
+                {
+                    b.HasOne("Silk.Data.Models.Guild", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Silk.Data.Models.Tag", "OriginalTag")
+                        .WithMany("Aliases")
+                        .HasForeignKey("OriginalTagId");
+
+                    b.Navigation("OriginalTag");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.TicketMessage", b =>
@@ -458,6 +546,10 @@ namespace Silk.Data.Migrations
                     b.Navigation("Configuration")
                         .IsRequired();
 
+                    b.Navigation("Infractions");
+
+                    b.Navigation("Tags");
+
                     b.Navigation("Users");
                 });
 
@@ -469,17 +561,19 @@ namespace Silk.Data.Migrations
 
                     b.Navigation("DisabledCommands");
 
+                    b.Navigation("InfractionSteps");
+
                     b.Navigation("SelfAssignableRoles");
+                });
+
+            modelBuilder.Entity("Silk.Data.Models.Tag", b =>
+                {
+                    b.Navigation("Aliases");
                 });
 
             modelBuilder.Entity("Silk.Data.Models.Ticket", b =>
                 {
                     b.Navigation("History");
-                });
-
-            modelBuilder.Entity("Silk.Data.Models.User", b =>
-                {
-                    b.Navigation("Infractions");
                 });
 #pragma warning restore 612, 618
         }

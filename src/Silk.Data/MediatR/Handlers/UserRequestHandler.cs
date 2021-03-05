@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,9 +17,8 @@ namespace Silk.Data.MediatR.Handlers
             public async Task<User?> Handle(UserRequest.Get request, CancellationToken cancellationToken)
             {
                 User? user = await _db.Users
-                    .Include(u => u.Infractions)
                     .FirstOrDefaultAsync(u => u.Id == request.UserId && 
-                                                u.GuildId == request.GuildId, cancellationToken);
+                                              u.GuildId == request.GuildId, cancellationToken);
                 return user;
             }
         }
@@ -52,7 +52,6 @@ namespace Silk.Data.MediatR.Handlers
                 User user = await _db.Users.FirstAsync(u => u.Id == request.UserId && u.GuildId == request.GuildId, cancellationToken);
                 
                 user.Flags = request.Flags ?? user.Flags;
-                user.Infractions = request.Infractions ?? user.Infractions;
                 await _db.SaveChangesAsync(cancellationToken);
                 
                 return user;
@@ -66,17 +65,24 @@ namespace Silk.Data.MediatR.Handlers
 
             public async Task<User> Handle(UserRequest.GetOrCreate request, CancellationToken cancellationToken)
             {
-                User? user = await _db.Users.FirstOrDefaultAsync(u => u.Id == request.UserId && u.GuildId == request.GuildId, cancellationToken);
+                User? user = 
+                    await _db.Users
+                    .Include(u => u.Guild)
+                    .FirstOrDefaultAsync(u => u.Id == request.UserId && u.GuildId == request.GuildId, cancellationToken);
+
                 if (user is null)
                 {
+                    Guild guild = await _db.Guilds.FirstAsync(g => g.Id == request.GuildId, cancellationToken);
                     user = new()
                     {
                         GuildId = request.GuildId,
                         Id = request.UserId,
                         Flags = request.Flags ?? UserFlag.None,
-                        Infractions = request.Infractions ?? new()
                     };
+                    guild.Users.Add(user);
+                    await _db.SaveChangesAsync(cancellationToken);
                 }
+
                 return user;
             }
         }

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System.Collections.Generic;
+using MediatR;
 using Silk.Data.Models;
 
 namespace Silk.Data.MediatR
@@ -9,6 +10,9 @@ namespace Silk.Data.MediatR
         
         public record Add(ulong GuildId, string Prefix) : IRequest<Guild>;
         
+        public record Update(ulong GuildId) : IRequest { public Infraction? Infraction { get; init; } }
+        
         public record GetOrCreate(ulong GuildId, string Prefix) : IRequest<Guild>;
+
     }
 }

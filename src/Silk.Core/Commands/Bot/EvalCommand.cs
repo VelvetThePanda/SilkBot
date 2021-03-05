@@ -74,9 +74,8 @@ namespace Silk.Core.Commands.Bot
                 var asm = AppDomain.CurrentDomain.GetAssemblies()
                     .Where(xa => !xa.IsDynamic && !string.IsNullOrWhiteSpace(xa.Location));
                 asm = asm.Append(typeof(VoiceNextConnection).Assembly);
-
+                
                 sopts = sopts.WithReferences(asm);
-
                 Script<object> script = CSharpScript.Create(cs, sopts, typeof(TestVariables));
                 script.Compile();
                 ScriptState<object> result = await script.RunAsync(globals).ConfigureAwait(false);

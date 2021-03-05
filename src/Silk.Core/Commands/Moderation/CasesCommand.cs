@@ -1,8 +1,10 @@
 ﻿using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
 using MediatR;
 using Silk.Core.Utilities;
 using Silk.Data.MediatR;
@@ -22,34 +24,38 @@ namespace Silk.Core.Commands.Moderation
         }
 
         [Command]
+        [RequireGuild]
         [RequireFlag(UserFlag.Staff)]
         public async Task Cases(CommandContext ctx, DiscordUser user)
         {
             var mBuilder = new DiscordMessageBuilder().WithReply(ctx.Message.Id);
             var eBuilder = new DiscordEmbedBuilder();
 
-            User? userModel = await _mediator.Send(new UserRequest.Get(ctx.Guild.Id, user.Id));
+            Guild guild = await _mediator.Send(new GuildRequest.Get(ctx.Guild.Id));
+            bool userExists = await _mediator.Send(new UserRequest.Get(ctx.Guild.Id, user.Id)) is not null;
             
-            if (userModel is null || !userModel.Infractions.Any())
+            if (!userExists || guild.Infractions.Count(i => i.UserId == user.Id) is 0)
             {
                 mBuilder.WithContent("User has no cases!");
                 await ctx.RespondAsync(mBuilder);
             }
             else
             {
-                string cases = userModel.Infractions
-                    .OrderBy(i => i.InfractionTime)
-                    .Select((i, n) =>
+                var sb = new StringBuilder();
+                for (int i = 0; i < guild.Infractions.Count; i++)
+                {
+                    var currentInfraction = guild.Infractions[i];
+                    if (currentInfraction.UserId == user.Id)
                     {
-                        var s = $"{n + 1}: {i.InfractionType} by <@{i.Enforcer}>, ";
-                        s += $"Reason:\n{i.Reason[..(i.Reason.Length > 100 ? 100 : ^0)]}";
-                        return s;
-                    })
-                    .Join("\n");
+                        sb.AppendLine($"Case {i + 1}: {currentInfraction.InfractionType.Humanize(LetterCasing.Title)} by <@{currentInfraction.Enforcer}>, " +
+                                      $"Reason:\n{currentInfraction.Reason[..(currentInfraction.Reason.Length > 100 ? 100 : ^0)]}");
+                    }
+                }
+                
                 eBuilder
                     .WithColor(DiscordColor.Gold)
                     .WithTitle($"Cases for {user.Id}")
-                    .WithDescription(cases);
+                    .WithDescription(sb.ToString());
                 mBuilder.WithEmbed(eBuilder);
                 
                 await ctx.RespondAsync(mBuilder);
