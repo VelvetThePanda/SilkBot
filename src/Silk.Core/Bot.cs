@@ -9,12 +9,13 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
-using Humanizer;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using Silk.Core.Data;
 using Silk.Core.EventHandlers;
 using Silk.Core.EventHandlers.MemberAdded;
 using Silk.Core.EventHandlers.MessageAdded;
@@ -22,7 +23,6 @@ using Silk.Core.EventHandlers.MessageAdded.AutoMod;
 using Silk.Core.EventHandlers.Notifications;
 using Silk.Core.Utilities.Bot;
 using Silk.Core.Utilities.HelpFormatter;
-using Silk.Data;
 using Silk.Extensions;
 
 namespace Silk.Core
@@ -43,13 +43,13 @@ namespace Silk.Core
         private readonly Stopwatch _sw = new();
 
 
-        public Bot(            
+        public Bot(
             IMediator mediator,
-            ILogger<Bot> logger, 
-            IServiceProvider services, 
-            DiscordShardedClient client, 
-            BotExceptionHandler exceptionHandler, 
-            IDbContextFactory<SilkDbContext> dbFactory)
+            ILogger<Bot> logger,
+            IServiceProvider services,
+            DiscordShardedClient client,
+            BotExceptionHandler exceptionHandler,
+            IDbContextFactory<GuildContext> dbFactory)
         {
             _sw.Start();
             _services = services;
@@ -57,17 +57,22 @@ namespace Silk.Core
             _exceptionHandler = exceptionHandler;
             _mediator = mediator;
 
-            SilkDbContext silkDbContext = dbFactory.CreateDbContext();
+            try
+            {
+                _logger.LogInformation("Migrating core database!");
+                dbFactory.CreateDbContext().Database.Migrate();
+            }
+            catch (PostgresException)
+            {
+                /* Ignored. */
+            }
 
-            #if DEBUG
-            silkDbContext.Database.Migrate();
-            #endif
-            
             Instance = this;
             Client = client;
         }
         private void InitializeServices()
         {
+
             _ = _services.GetRequiredService<AntiInviteCore>();
             // Logger has to be setup in that class before it can be used properly. //
         }
@@ -94,15 +99,15 @@ namespace Silk.Core
                 UseDefaultCommandHandler = false,
                 Services = _services,
                 IgnoreExtraArguments = true,
-
             };
+
             await Client.UseCommandsNextAsync(_commands);
             InitializeCommands();
             InitializeServices();
             SubscribeToEvents();
-            
+
             await _exceptionHandler.SubscribeToEventsAsync();
-            
+
             await Client.UseInteractivityAsync(new()
             {
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
@@ -110,7 +115,6 @@ namespace Silk.Core
                 PollBehaviour = PollBehaviour.DeleteEmojis,
                 Timeout = TimeSpan.FromMinutes(1)
             });
-
 
             IReadOnlyDictionary<int, CommandsNextExtension>? cmdNext = await Client.GetCommandsNextAsync();
             CommandsNextExtension[] cnextExtensions = cmdNext.Select(c => c.Value).ToArray();
@@ -144,7 +148,7 @@ namespace Silk.Core
 
             Client.MessageUpdated += async (c, e) => { _ = _mediator.Publish(new MessageEdited(c, e)); };
             _logger.LogTrace("Subscribed to:" + " Notifications/AutoMod/MessageEdit/AntiInvite".PadLeft(50));
-            
+
             //TODO: Change this to MediatR notification
             Client.MessageCreated += _services.Get<MessageCreatedHandler>().Tickets;
             _logger.LogTrace("Subscribed to:" + " MessageAddedHelper/Tickets".PadLeft(50));
@@ -168,7 +172,11 @@ namespace Silk.Core
 
         public async Task StartAsync(CancellationToken cancellationToken) => await InitializeClientAsync();
 
-        public async Task StopAsync(CancellationToken cancellationToken) => await Client.StopAsync();
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Shutting down. ");
+            await Client.StopAsync();
+        }
 
     }
 }

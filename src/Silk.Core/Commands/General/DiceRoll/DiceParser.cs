@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Silk.Core.Utilities;
+using Silk.Core.Types;
 
 namespace Silk.Core.Commands.General.DiceRoll
 {

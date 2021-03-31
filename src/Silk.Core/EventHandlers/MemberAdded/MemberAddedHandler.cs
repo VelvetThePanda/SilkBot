@@ -7,8 +7,8 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Logging;
+using Silk.Core.Data.Models;
 using Silk.Core.Services;
-using Silk.Data.Models;
 
 namespace Silk.Core.EventHandlers.MemberAdded
 {
@@ -41,6 +41,7 @@ namespace Silk.Core.EventHandlers.MemberAdded
 
             if (screenMembers || verifyMembers)
                 MemberQueue.Add(e.Member);
+            else await GreetMemberAsync(e.Member, config);
         }
 
         private static async Task GreetMemberAsync(DiscordMember member, GuildConfig config)
@@ -51,7 +52,8 @@ namespace Silk.Core.EventHandlers.MemberAdded
                 string formattedMessage = config.GreetingText
                     .Replace("{u}", member.Username)
                     .Replace("{s}", member.Guild.Name)
-                    .Replace("{@u}", member.Mention);
+                    .Replace("{@u}", member.Mention)
+                    .Replace("\\n", "\n");
 
                 await channel.SendMessageAsync(formattedMessage);
             }

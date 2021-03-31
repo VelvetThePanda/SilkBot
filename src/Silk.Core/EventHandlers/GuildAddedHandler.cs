@@ -8,8 +8,9 @@ using DSharpPlus.EventArgs;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Silk.Core.Constants;
-using Silk.Data.MediatR;
-using Silk.Data.Models;
+using Silk.Core.Data.MediatR.Unified.Guilds;
+using Silk.Core.Data.MediatR.Unified.Users;
+using Silk.Core.Data.Models;
 using Silk.Extensions;
 
 namespace Silk.Core.EventHandlers
@@ -19,6 +20,7 @@ namespace Silk.Core.EventHandlers
     {
         public static bool StartupCompleted { get; private set; }
 
+        private bool _logged = false;
         private readonly IMediator _mediator;
         private readonly ILogger<GuildAddedHandler> _logger;
         private readonly Dictionary<int, ShardState> _shardStates = new();
@@ -49,6 +51,7 @@ namespace Silk.Core.EventHandlers
         /// </summary>
         public async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs eventArgs)
         {
+            _ = await _mediator.Send(new GetOrCreateGuildRequest(eventArgs.Guild.Id, Bot.DefaultCommandPrefix));
             int cachedMembers = await CacheGuildMembers(eventArgs.Guild.Members.Values);
             
             lock (_lock)
@@ -85,7 +88,11 @@ namespace Silk.Core.EventHandlers
             state.Completed = true;
             _shardStates[c.ShardId] = state;
             StartupCompleted = _shardStates.Values.All(s => s.Completed);
-            if (StartupCompleted) _logger.LogDebug("All shard(s) cache runs complete!");
+            if (StartupCompleted && !_logged)
+            {
+                _logger.LogDebug("All shard(s) cache runs complete!");
+                _logged = true;
+            }
         }
 
 
@@ -124,7 +131,7 @@ namespace Silk.Core.EventHandlers
             {
                 UserFlag flag = member.HasPermission(Permissions.Administrator) || member.IsOwner ? UserFlag.EscalatedStaff : UserFlag.Staff;
 
-                User? user = await _mediator.Send(new UserRequest.Get(member.Guild.Id, member.Id));
+                User? user = await _mediator.Send(new GetUserRequest(member.Guild.Id, member.Id));
                 if (user is not null)
                 {
                     if (member.HasPermission(Permissions.Administrator) || member.IsOwner && !user.Flags.Has(UserFlag.EscalatedStaff))
@@ -143,11 +150,11 @@ namespace Silk.Core.EventHandlers
                             user.Flags.Remove(f);
                         }
                     }
-                    await _mediator.Send(new UserRequest.Update(member.Guild.Id, member.Id, user.Flags));
+                    await _mediator.Send(new UpdateUserRequest(member.Guild.Id, member.Id, user.Flags));
                 }
                 else if (member.HasPermission(FlagConstants.CacheFlag) || member.IsAdministrator() || member.IsOwner)
                 {
-                    await _mediator.Send(new UserRequest.Add(member.Guild.Id, member.Id, flag));
+                    await _mediator.Send(new AddUserRequest(member.Guild.Id, member.Id, flag));
                     staffCount++;
                 }
             }

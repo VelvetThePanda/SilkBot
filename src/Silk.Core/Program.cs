@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using DSharpPlus;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -13,51 +12,63 @@ using Serilog;
 using Serilog.Events;
 using Silk.Core.Utilities;
 using Silk.Core.Utilities.Bot;
-using Silk.Data;
 
 namespace Silk.Core
 {
-    public class Program
+    public static class Program
     {
         public static DateTime Startup { get; } = DateTime.Now;
+        public static string Version => "1.5.1-alpha";
         public static string HttpClientName { get; } = "Silk";
+        private const string LogFormat = "[{Timestamp:h:mm:ss ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj} {Exception:j}{NewLine}";
 
-        private static readonly DiscordConfiguration _clientConfig = new()
+        private static DiscordConfiguration _clientConfig = new()
         {
-            Intents = DiscordIntents.Guilds                 | // Caching
-                      DiscordIntents.GuildMembers           | // Auto-mod/Auto-greet
-                      DiscordIntents.DirectMessages         | // DM Commands
-                      DiscordIntents.GuildPresences         | // Auto-Mod Anti-Status-Invite
-                      DiscordIntents.GuildMessages          | // Commands & Auto-Mod
-                      DiscordIntents.GuildMessageReactions  | // Role-menu
-                      DiscordIntents.DirectMessageReactions,  // Interactivity in DMs
+            Intents = DiscordIntents.Guilds | // Caching
+                      DiscordIntents.GuildMembers | // Auto-mod/Auto-greet
+                      DiscordIntents.DirectMessages | // DM Commands
+                      DiscordIntents.GuildPresences | // Auto-Mod Anti-Status-Invite
+                      DiscordIntents.GuildMessages | // Commands & Auto-Mod
+                      DiscordIntents.GuildMessageReactions | // Role-menu
+                      DiscordIntents.DirectMessageReactions | // Interactivity in DMs
+                      DiscordIntents.GuildVoiceStates,
+            LogTimestampFormat = "h:mm:ss ff tt",
             MessageCacheSize = 1024,
-            MinimumLogLevel = LogLevel.None
+            MinimumLogLevel = LogLevel.None,
         };
 
-        public static async Task Main(string[] args) =>
+        // Setting this in the prop doesn't work; it'll have a 2s discrepancy
+        //static Program() => Startup = DateTime.Now;
+
+        public static async Task Main(string[] args)
+        {
+            _ = Startup;
+
+            Console.WriteLine($"Started! The current time is {DateTime.Now:h:mm:ss ff tt}");
             await CreateHostBuilder(args)
                 .UseConsoleLifetime()
-                .StartAsync()
+                .RunConsoleAsync()
                 .ConfigureAwait(false);
-
+        }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
                 .UseConsoleLifetime()
-                .ConfigureAppConfiguration((_, configuration) =>
+                .ConfigureAppConfiguration((context, configuration) =>
                 {
                     configuration.SetBasePath(Directory.GetCurrentDirectory());
                     configuration.AddJsonFile("appSettings.json", true, false);
-                    configuration.AddUserSecrets<Program>(true, false);
+                    configuration.AddUserSecrets<Bot>(true, false);
                 })
                 .ConfigureLogging((builder, _) =>
                 {
-                    const string logFormat = "[{Timestamp:h:mm:ss ff tt}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception:j}";
+                    if (int.TryParse(builder.Configuration["Shards"] ?? "1", out int shards))
+                        _clientConfig.ShardCount = shards;
+
                     var logger = new LoggerConfiguration()
-                        .WriteTo.Console(outputTemplate: logFormat, theme: SerilogThemes.Bot)
-                        .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, logFormat, rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
+                        .WriteTo.Console(outputTemplate: LogFormat, theme: SerilogThemes.Bot)
+                        .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, LogFormat, rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Error);
 
                     Log.Logger = builder.Configuration["LogLevel"] switch
@@ -70,11 +81,12 @@ namespace Silk.Core
                         "Panic" => logger.MinimumLevel.Fatal().CreateLogger(),
                         _ => logger.MinimumLevel.Information().CreateLogger()
                     };
+                    Log.Logger.ForContext(typeof(Program)).Information("Logging initialized!");
                 })
                 .ConfigureServices((context, services) =>
                 {
                     IConfiguration config = context.Configuration;
-                    _clientConfig.Token = config.GetConnectionString("BotToken");
+                    _clientConfig.Token = config.GetConnectionString("botToken");
                     services.AddSingleton(new DiscordShardedClient(_clientConfig));
                     Core.Startup.AddDatabase(services, config.GetConnectionString("dbConnection"));
                     Core.Startup.AddServices(services);
@@ -89,13 +101,13 @@ namespace Silk.Core
 
                     // Sub out the default implementation filter with custom filter
                     services.Replace(ServiceDescriptor.Singleton<IHttpMessageHandlerBuilderFilter, CustomLoggingFilter>());
-                
+
                     /* Can remove all filters with this line */
                     // services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
 
-                    services.AddTransient(_ => new BotConfig(config));
+                    services.AddSingleton(_ => new BotConfig(config));
 
-                    
+
                 })
                 .UseSerilog();
         }

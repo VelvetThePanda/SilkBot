@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Silk.Extensions
 {
@@ -23,6 +24,34 @@ namespace Silk.Extensions
                 span.Fill(' ');
                 state.str.AsSpan().CopyTo(span.Slice(state.start, state.str.Length));
             });
+        }
+        public static string Pull(this string text, Range range)
+        {
+            if (range.End.Value >= text.Length)
+                return text;
+            if (range.Start.Value >= text.Length || range.Start.Value < 0)
+                return text;
+
+            if (!range.End.IsFromEnd)
+            {
+                return text[range.Start..Math.Min(text.Length, range.End.Value)];
+            }
+            else
+            {
+                return text[range];
+            }
+        }
+
+        public static Stream AsStream(this string s)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+
+            writer.Write(s);
+            writer.Flush();
+
+            stream.Position = 0;
+            return stream;
         }
     }
 }

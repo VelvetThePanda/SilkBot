@@ -1,202 +1,164 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.EventArgs;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using MediatR;
-using Silk.Core.Constants;
+using SharpYaml.Serialization;
+using Silk.Core.Data.MediatR.Unified.Guilds;
+using Silk.Core.Data.Models;
 using Silk.Core.Services.Interfaces;
 using Silk.Core.Utilities;
-using Silk.Data.MediatR;
-using Silk.Data.Models;
+using Silk.Core.Utilities.HelpFormatter;
 using Silk.Extensions;
-using Silk.Extensions.DSharpPlus;
 
 namespace Silk.Core.Commands.Server
 {
-    
+    [Category(Categories.Server)]
     public class WelcomeCommand : BaseCommandModule
     {
         private readonly IMediator _mediator;
+        private readonly HttpClient _client;
         private readonly IServiceCacheUpdaterService _updater;
 
-        public WelcomeCommand(IMediator mediator, IServiceCacheUpdaterService updater)
+        // What do you think this is for. //
+        private const string BaseFile = 
+@"config:
+    welcome:
+        enabled: false # true or false
+        greet_on: member_join # member_join, role_grant, or screen_complete (when they agree to server rules)
+        greeting_channel: 0 # Id of the channel to greet them in
+        message: """" # Valid substitutions {u} -> Username, {@u} -> User mention, {s} -> Server name
+        role_id: 0 # Id of the role to check, if configured.";
+        
+        public WelcomeCommand(IMediator mediator, IServiceCacheUpdaterService updater, HttpClient client)
         {
             _mediator = mediator;
             _updater = updater;
+            _client = client;
         }
-        
+
         [Command]
         [RequireFlag(UserFlag.Staff)]
         [Description
-            ("Welcome message settings! Currently supported substitutions:" +
-             "\n`{u}` -> Username, `{@u}` -> Mention, `{s}` -> Server Name")]
-        public async Task SetWelcome(CommandContext ctx, [RemainingText] string message)
+        ("Welcome message settings! Currently supported substitutions:" +
+         "\n`{u}` -> Username, `{@u}` -> Mention, `{s}` -> Server Name")]
+        public async Task SetWelcome(CommandContext ctx)
         {
-            DiscordEmoji confirm = DiscordEmoji.FromGuildEmote(ctx.Client, Emojis.Confirm.ToEmojiId());
-            DiscordEmoji deny = DiscordEmoji.FromGuildEmote(ctx.Client, Emojis.Decline.ToEmojiId());
-            DiscordMessage msg = null!;
-            
-            DiscordMessageBuilder builder = new DiscordMessageBuilder().WithoutMentions().WithReply(ctx.Message.Id);
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(ctx.Guild.Id));
-            InteractivityExtension interactivity = ctx.Client.GetInteractivity();
-            
-            if (config.GreetingChannel is 0) 
-                await SetupGreetingChannelAsync(ctx, interactivity, builder, config);
-
-            if (ctx.Guild.Features.Contains("MEMBER_VERIFICATION_GATE_ENABLED"))
-                await PromptScreeningConfirmationAsync(ctx, builder, interactivity, msg, message, confirm, deny);
+            if (!ctx.Message.Attachments.Any())
+            {
+                await SetWelcomeNoFileAsync(ctx);
+            }
             else
-                await PromptForRoleVerification(ctx, builder, interactivity, msg, message, confirm, deny);
-            
+            {
+                DiscordAttachment? attachment = ctx.Message.Attachments.FirstOrDefault(a => a.FileName is "config.yaml");
+                if (attachment is null)
+                {
+                    await ctx.RespondAsync("Hmm. I don't see `config.yaml` in those attatchments!");
+                }
+                else
+                {
+                    var dict = new Dictionary<string, Dictionary<string, Dictionary<string, object>>>();
+                    string content = await _client.GetStringAsync(attachment.Url);
+                    string? result = VerifyStructure(new Serializer().Deserialize(content, dict));
+                    
+                    if (result is not null)
+                    {
+                        await ctx.RespondAsync(result);
+                    }
+                    else
+                    {
+                        try { await ConfigureWelcomeAsync(dict, ctx.Guild.Id, ctx); }
+                        catch
+                        {
+                            await ctx.RespondAsync("Something went wrong while parsing your config! Check the file and try again.");
+                            return;
+                        }
+                        await ctx.TriggerTypingAsync();
+                        await ctx.RespondAsync("Alright! Changes should apply immediately! Thank you for choosing Silk! <3");
+                    }   
+                }
+            }
         }
 
-        private async Task PromptScreeningConfirmationAsync(
-            CommandContext ctx,
-            DiscordMessageBuilder builder,
-            InteractivityExtension interactivity,
-            DiscordMessage msg,
-            string message,
-            DiscordEmoji confirm,
-            DiscordEmoji deny)
+        private async Task ConfigureWelcomeAsync(Dictionary<string, Dictionary<string, Dictionary<string, object>>> result, ulong guildId, CommandContext ctx)
         {
-            builder.WithContent("It seems you have membership gating enabled on this server!\n" +
-                                "Would you like me to greet people after they complete screening?");
-                
-            msg = await ctx.RespondAsync(builder);
-                
-            await msg.CreateReactionAsync(confirm);
-            await msg.CreateReactionAsync(deny);
-                
-            var result = await interactivity.WaitForReactionAsync(m =>
-                m.Message == msg &&
-                m.Emoji == confirm || m.Emoji == deny, msg, ctx.User);
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(guildId));
+            Dictionary<string, object> dict = result["config"]["welcome"];
 
-            if (result.TimedOut)
-            {
-                builder.WithContent("Timed out!");
-                await ctx.RespondAsync(builder);
-                return;
-            }
+            var enabled = (bool)dict["enabled"];
+            var greetOn = dict["greet_on"].ToString();
+            var greetingChannel = ulong.Parse(dict["greeting_channel"]?.ToString() ?? "0");
+            var message = dict["message"].ToString();
+            var roleId = ulong.Parse(dict["role_id"].ToString() ?? "0");
 
-            if (result.Result.Emoji == deny)
+            switch (greetOn!.ToLower())
             {
-                await PromptForRoleVerification(ctx, builder, interactivity, msg, message, confirm, deny);
+                case "member_join":
+                    config.GreetMembers = enabled;
+                    config.GreetOnScreeningComplete = false;
+                    config.GreetOnVerificationRole = false;
+                    break;
+                case "screen_complete":
+                    config.GreetMembers = enabled;
+                    config.GreetOnScreeningComplete = true;
+                    config.GreetOnVerificationRole = false;
+                    break;
+                case "role_grant":
+                    config.GreetMembers = enabled;
+                    config.GreetOnScreeningComplete = false;
+                    config.GreetOnVerificationRole = true;
+                    config.VerificationRole = roleId;
+                    break;
             }
-            else
+            config.GreetingChannel = greetingChannel is 0 ? config.GreetingChannel : greetingChannel;
+
+            await _mediator.Send(new UpdateGuildConfigRequest(guildId)
             {
-                                        
-                builder.WithReply(msg.Id)
-                    .WithContent("Great, I'll greet people when they complete membership screening!");
-                var request = new GuildConfigRequest.Update
-                {
-                    GuildId = ctx.Guild.Id,
-                    GreetMembers = true,
-                    GreetingText = message,
-                    GreetOnScreeningComplete = true
-                };
-                    
-                await _mediator.Send(request);
-            }
+                GreetMembers = config.GreetMembers,
+                GreetOnScreeningComplete = config.GreetOnScreeningComplete,
+                GreetOnVerificationRole = config.GreetOnVerificationRole,
+                VerificationRoleId = config.VerificationRole,
+                GreetingChannelId = config.GreetingChannel,
+                GreetingText = message
+            });
+            _updater.UpdateGuild(guildId);
         }
         
-        private async Task PromptForRoleVerification(
-            CommandContext ctx,
-            DiscordMessageBuilder builder,
-            InteractivityExtension interactivity,
-            DiscordMessage msg,
-            string message,
-            DiscordEmoji confirm,
-            DiscordEmoji deny)
+        private async Task SetWelcomeNoFileAsync(CommandContext ctx)
         {
-            InteractivityResult<MessageReactionAddEventArgs> result = new();
-            builder.WithReply(msg.Id)
-                .WithContent("Alrighty, would you like me to greet people when you give them a role? Declining will greet on join!");
-            msg = await ctx.RespondAsync(builder);
-                    
-            await msg.CreateReactionAsync(confirm);
-            await msg.CreateReactionAsync(deny);
-            result = await interactivity.WaitForReactionAsync(m => m.Emoji == confirm || m.Emoji == deny, msg, ctx.User);
-
-            if (result.TimedOut)
-            {
-                builder.WithContent("Timed out!");
-                await ctx.RespondAsync(builder);
-                return;
-            }
-            if (result.Result.Emoji == deny)
-            {
-                builder.WithReply(msg.Id).WithContent("Alright, I'll greet people as they join!");
-                await ctx.RespondAsync(builder);
-                var request = new GuildConfigRequest.Update
-                {
-                    GuildId = ctx.Guild.Id,
-                    GreetMembers = true,
-                    GreetOnScreeningComplete = false,
-                    GreetOnVerificationRole = false,
-                    GreetingText = message,
-                };
-                await _mediator.Send(request);
-            }
-            else
-            {
-                await OnRoleGivenAsync(ctx, interactivity, message);
-            }
-        }
-        
-        private async Task OnRoleGivenAsync(CommandContext ctx, InteractivityExtension interactivity, string message)
-        {
-            var builder = new DiscordMessageBuilder().WithContent("Alright, you'll need to specify a role. Simply Mention (@) the role, and I'll record your response!");
-            await ctx.RespondAsync(builder);
-                        
-            var res = await interactivity.WaitForMessageAsync(m => m.Content is "cancel" || m.MentionedRoles.Count is 1);
-                        
-            if (res.TimedOut)
-            {
-                builder.WithContent("Timed out!");
-                await ctx.RespondAsync(builder);
-                return;
-            }
-
-            ulong role = res.Result.MentionedRoles[0].Id;
-            var request = new GuildConfigRequest.Update
-            {
-                GuildId = ctx.Guild.Id,
-                GreetingText = message,
-                GreetOnScreeningComplete = false,
-                GreetOnVerificationRole = true,
-                VerificationRoleId = role
-            };
-            await _mediator.Send(request);
-            builder.WithContent("And you're set! Current welcome message:\n> " +
-                                message
-                                    .Replace("{u}", ctx.Member.Username)
-                                    .Replace("{s}", ctx.Member.Guild.Name)
-                                    .Replace("{@u}", ctx.Member.Mention));
+            var builder = new DiscordMessageBuilder();
+            builder.WithReply(ctx.Message.Id)
+                .WithContent("We know this is going to look oh so janky, but it's the easiest and 'cleanest' way we can do this!\n"
+                             + "Just change this config file, and I'll do the rest :)\n"
+                             + "(Just rerun this command with the attatched file <3)");
+            
+            builder.WithFile("config.yaml", BaseFile.AsStream());
+            
             await ctx.RespondAsync(builder);
         }
-        
-        private async Task SetupGreetingChannelAsync(CommandContext ctx, InteractivityExtension interactivity, DiscordMessageBuilder builder, GuildConfig config)
-        {
-            builder.WithContent("You need to set up a greeting channel! Simply mention the channel you want to set as the greeting channel, and I'll handle the rest! :)");
-            _ = await ctx.RespondAsync(builder);
-            var result = await interactivity.WaitForMessageAsync(m => m.MentionedChannels.Count is 1);
 
-            if (result.TimedOut)
-            {
-                throw new TimeoutException();
-            }
-            else
-            {
-                config.GreetingChannel = result.Result.MentionedChannels[0].Id;
-                builder.WithContent($"Alright, {result.Result.MentionedChannels[0].Mention} it is :)").WithReply(result.Result.Id);
-                await ctx.RespondAsync(builder);
-                await _mediator.Send(new GuildConfigRequest.Update {GuildId = ctx.Guild.Id, GreetingChannelId = result.Result.MentionedChannels[0].Id});
-            }
+        private string? VerifyStructure(object obj)
+        {
+            if (obj is not Dictionary<string, Dictionary<string, Dictionary<string, object>>> configDict)
+                return "Missing entirety of file!";
+            
+            if (!configDict.TryGetValue("config", out Dictionary<string, Dictionary<string, object>>? config))
+                return "Mising \"config\" section!";
+            
+            if (!config.TryGetValue("welcome", out Dictionary<string, object>? welcome))
+                return "Missing \"welcome\" section!";
+            
+            var options = new[] { "enabled", "greet_on", "greeting_channel", "message", "role_id" };
+            
+            string? missingOption = options.FirstOrDefault(o => !welcome.ContainsKey(o));
+            
+            if (missingOption is not null)
+                return $"Missing \"{missingOption}\" section!";
+            
+            return null;
         }
     }
 }

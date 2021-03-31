@@ -5,9 +5,9 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using Silk.Core.Data;
+using Silk.Core.Data.Models;
 using Silk.Core.Utilities.HelpFormatter;
-using Silk.Data;
-using Silk.Data.Models;
 using Silk.Extensions;
 
 namespace Silk.Core.Commands.Server
@@ -15,9 +15,9 @@ namespace Silk.Core.Commands.Server
     [Category(Categories.Server)]
     public class ServerInfoCommand : BaseCommandModule
     {
-        private readonly IDbContextFactory<SilkDbContext> _dbFactory;
+        private readonly IDbContextFactory<GuildContext> _dbFactory;
 
-        public ServerInfoCommand(IDbContextFactory<SilkDbContext> dbFactory)
+        public ServerInfoCommand(IDbContextFactory<GuildContext> dbFactory)
         {
             _dbFactory = dbFactory;
         }
@@ -27,7 +27,7 @@ namespace Silk.Core.Commands.Server
         public async Task ServerInfo(CommandContext ctx)
         {
             DiscordGuild guild = ctx.Guild;
-            SilkDbContext db = _dbFactory.CreateDbContext();
+            GuildContext db = _dbFactory.CreateDbContext();
 
             var staffMembers = db.Guilds.Include(g => g.Users)
                 .First(g => g.Id == guild.Id)
@@ -43,8 +43,8 @@ namespace Silk.Core.Commands.Server
 
             embed.WithThumbnail(guild.IconUrl);
 
-            if (guild.PremiumSubscriptionCount.Value > 0)
-                embed.AddField("Boosts:", $"{guild.PremiumSubscriptionCount.Value} boosts (level {guild.PremiumTier})");
+            if (guild.PremiumSubscriptionCount.HasValue && guild.PremiumSubscriptionCount.Value > 0)
+                embed.AddField("Boosts:", $"{guild.PremiumSubscriptionCount!.Value} boosts (level {guild.PremiumTier})");
 
             if (guild.Features.Count > 0)
                 embed.AddField("Enabled guild features: ", guild.Features.Select(f => f.Humanize(LetterCasing.Title)).Join(", "));

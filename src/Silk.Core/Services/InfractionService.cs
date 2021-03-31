@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using System.Timers;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using DSharpPlus.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Silk.Core.Data;
+using Silk.Core.Data.MediatR.Unified.Guilds;
+using Silk.Core.Data.MediatR.Unified.Users;
+using Silk.Core.Data.Models;
 using Silk.Core.Services.Interfaces;
 using Silk.Core.Utilities;
-using Silk.Data;
-using Silk.Data.MediatR;
-using Silk.Data.Models;
 
 namespace Silk.Core.Services
 {
@@ -23,11 +23,11 @@ namespace Silk.Core.Services
         private readonly ILogger<InfractionService> _logger;
         private readonly DiscordShardedClient _client;
         private readonly IMediator _mediator;
-        private readonly SilkDbContext _db;
+        private readonly GuildContext _db;
         
         private readonly List<Infraction> _tempInfractions = new();
         
-        public InfractionService(ILogger<InfractionService> logger, DiscordShardedClient client, IMediator mediator, SilkDbContext db)
+        public InfractionService(ILogger<InfractionService> logger, DiscordShardedClient client, IMediator mediator, GuildContext db)
         {
             _logger = logger;
             _client = client;
@@ -45,7 +45,7 @@ namespace Silk.Core.Services
         {
             // Validation is handled by the command class. //
             _ = member.RemoveAsync(infraction.Reason);
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(member.Guild.Id));
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(member.Guild.Id));
 
             if (config.LoggingChannel is 0)
             {
@@ -62,8 +62,8 @@ namespace Silk.Core.Services
         public async Task BanAsync(DiscordMember member, DiscordChannel channel, Infraction infraction)
         {
             await member.BanAsync(0, infraction.Reason);
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(member.Guild.Id));
-            User user = await _mediator.Send(new UserRequest.GetOrCreate(channel.GuildId, member.Id));
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(member.Guild.Id));
+            User user = await _mediator.Send(new GetOrCreateUserRequest(channel.GuildId, member.Id));
             await ApplyInfractionAsync(infraction.Guild, user, infraction);
             if (config.LoggingChannel is 0)
             {
@@ -71,7 +71,7 @@ namespace Silk.Core.Services
             }
             else
             {
-                Guild guild = await _mediator.Send(new GuildRequest.Get(member.Guild.Id));
+                Guild guild = await _mediator.Send(new GetGuildRequest(member.Guild.Id));
                 int infractions = guild.Infractions.Count + 1;
 
                 DiscordEmbedBuilder embed = EmbedHelper.CreateEmbed($"Case #{infractions} | User {member.Username}",
@@ -90,9 +90,9 @@ namespace Silk.Core.Services
                 throw new ArgumentOutOfRangeException(nameof(infraction), "Infraction must have expiry date!");
             
             _logger.LogTrace("Querying for guild, config, and user");
-            Guild guild = await _mediator.Send(new GuildRequest.Get(channel.GuildId));
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(channel.GuildId));
-            User user = await _mediator.Send(new UserRequest.GetOrCreate(guild.Id, member.Id));
+            Guild guild = await _mediator.Send(new GetGuildRequest(channel.GuildId));
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(channel.GuildId));
+            User user = await _mediator.Send(new GetOrCreateUserRequest(guild.Id, member.Id));
             _logger.LogTrace("Retrieved guild, config, and user from database!");
             
             await ApplyInfractionAsync(guild, user, infraction);
@@ -110,7 +110,7 @@ namespace Silk.Core.Services
 
         public async Task MuteAsync(DiscordMember member, DiscordChannel channel, Infraction infraction)
         {
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(channel.GuildId));
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(channel.GuildId));
 
             if (!channel.Guild.Roles.TryGetValue(config.MuteRoleId, out DiscordRole? muteRole))
             {
@@ -118,8 +118,8 @@ namespace Silk.Core.Services
                 return;
             }
             
-            User user = await _mediator.Send(new UserRequest.GetOrCreate(member.Guild.Id, member.Id));
-            Guild guild = await _mediator.Send(new GuildRequest.Get(member.Guild.Id));
+            User user = await _mediator.Send(new GetOrCreateUserRequest(member.Guild.Id, member.Id));
+            Guild guild = await _mediator.Send(new GetGuildRequest(member.Guild.Id));
             if (user.Flags.HasFlag(UserFlag.ActivelyMuted))
             {
                 Infraction? inf = user.Guild
@@ -130,7 +130,7 @@ namespace Silk.Core.Services
                         i.Expiration > DateTime.Now*/ /* I don't think this is needed. */);
                 if (inf is null) return;
                 inf.Expiration = infraction.Expiration;
-                await _mediator.Send(new GuildRequest.Update(guild.Id) { Infraction = infraction });
+                await _mediator.Send(new UpdateGuildRequest(guild.Id, infraction));
                 _logger.LogTrace($"Updated mute for {member.Id}!");
                 return;
             }
@@ -163,7 +163,7 @@ namespace Silk.Core.Services
         public async Task<Infraction> CreateInfractionAsync(DiscordMember member, DiscordMember enforcer, InfractionType type, string reason = "Not given.")
         {
             //Ensure the user will exist in the DB so we don't hit FK violations
-            _ = await _mediator.Send(new UserRequest.GetOrCreate(member.Guild.Id, member.Id));
+            _ = await _mediator.Send(new GetOrCreateUserRequest(member.Guild.Id, member.Id));
             Infraction infraction = new()
             {
                 Enforcer = enforcer.Id,
@@ -190,13 +190,13 @@ namespace Silk.Core.Services
 
         public async Task<bool> ShouldAddInfractionAsync(DiscordMember member)
         {
-            User? user = await _mediator.Send(new UserRequest.Get(member.Guild.Id, member.Id));
+            User? user = await _mediator.Send(new GetUserRequest(member.Guild.Id, member.Id));
             return !user?.Flags.HasFlag(UserFlag.InfractionExemption) ?? true;
         }
 
         public async Task<bool> HasActiveMuteAsync(DiscordMember member)
         {
-            User? user = await _mediator.Send(new UserRequest.Get(member.Guild.Id, member.Id));
+            User? user = await _mediator.Send(new GetUserRequest(member.Guild.Id, member.Id));
             return user?.Flags.HasFlag(UserFlag.ActivelyMuted) ?? false;
         }
         
@@ -239,9 +239,9 @@ namespace Silk.Core.Services
                 InfractionType.Kick => user.Flags | UserFlag.KickedPrior,
                 _ => user.Flags
             };
-            await _mediator.Send(new UserRequest.Update(guild.Id, user.Id, user.Flags));
+            await _mediator.Send(new UpdateUserRequest(guild.Id, user.Id, user.Flags));
             
-            await _mediator.Send(new GuildRequest.Update(guild.Id) { Infraction = infraction });
+            await _mediator.Send(new UpdateGuildRequest(guild.Id, infraction));
         }
 
         private async Task OnTick()
@@ -263,7 +263,7 @@ namespace Silk.Core.Services
                     return;
                 }
                 
-                GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(inf.Key));
+                GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(inf.Key));
                 _logger.LogTrace("Retrieved config for guild {GuildId}!", guild.Id);
                 
                 foreach (Infraction infraction in inf)
@@ -289,9 +289,10 @@ namespace Silk.Core.Services
         {
             IEnumerable<Infraction> infractions = new List<Infraction>();
             //TODO: Subsitite this for DiscordShardedClient#Guilds and MediatR calls
+            //Update, we can't, since the client needs to start first.
             foreach (var guild in _db.Guilds.Include(g => g.Infractions))
             {
-                if (!guild.Infractions.Any())
+                if (!guild.Infractions.Any(inf => inf.Expiration > DateTime.Now))
                     continue;
                 
                 var guildInfractions = guild.Infractions
@@ -319,8 +320,17 @@ namespace Silk.Core.Services
             _logger.LogTrace("Log channel ({LogChannel}) exists on guild!", config.LoggingChannel);
             await logChannel.SendMessageAsync(embed);
         }
-        
-        public async Task ProgressInfractionStepAsync(DiscordMember member, Infraction infraction) => throw new NotImplementedException();
+
+        public async Task ProgressInfractionStepAsync(DiscordMember member, string reason, DateTime? a = null)
+        {
+            User user = await _mediator.Send(new GetOrCreateUserRequest(member.Guild.Id, member.Id));
+            Guild guild = await _mediator.Send(new GetGuildRequest(member.Guild.Id));
+            GuildConfig config = guild.Configuration;
+            List<InfractionStep> steps = config.InfractionSteps;
+            List<Infraction> infractions = guild.Infractions.Where(i => i.UserId == member.Id).ToList();
+            
+
+        }
 
     }
 }

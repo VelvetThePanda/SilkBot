@@ -8,11 +8,13 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using MediatR;
 using Silk.Core.Utilities;
-using Silk.Data.MediatR;
-using Silk.Data.Models;
+using Silk.Core.Utilities.HelpFormatter;
+using Silk.Core.Data.MediatR.Unified.Guilds;
+using Silk.Core.Data.Models;
 
 namespace Silk.Core.Commands.Server
 {
+    [Category(Categories.Server)]
     public class ToggleCommandCommand : BaseCommandModule
     {
         private readonly IMediator _mediator;
@@ -59,7 +61,7 @@ namespace Silk.Core.Commands.Server
                 return;
             }
 
-            GuildConfig config = await _mediator.Send(new GuildConfigRequest.Get(ctx.Guild.Id));
+            GuildConfig config = await _mediator.Send(new GetGuildConfigRequest(ctx.Guild.Id));
 
             var commandNames = commands.Split(' ');
             
@@ -72,7 +74,7 @@ namespace Silk.Core.Commands.Server
                 action(config.DisabledCommands, commandName);
             }
 
-            await _mediator.Send(new GuildConfigRequest.Update {GuildId = ctx.Guild.Id, DisabledCommands = config.DisabledCommands});
+            await _mediator.Send(new UpdateGuildConfigRequest(ctx.Guild.Id) {DisabledCommands = config.DisabledCommands});
 
             var thumbsUp = DiscordEmoji.FromUnicode("👍");
             await ctx.Message.CreateReactionAsync(thumbsUp);

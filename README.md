@@ -1,5 +1,5 @@
 # Silk! 
-Silk is a simple, and, the fastest Discord bot written in C# until proven otherwise. Built on top of DSharpPlus for Discord API interactions. The goal of Silk! is be not only a great bot, but fill in the gaps that certain bots have. A bot your members will want to use, while not being a cookie-cutter game, moderation, or entertainment bot. Silk! is also made with large guilds in mind. Feel free to join the [Silk! server](https://discord.gg/HZfZb95) to ask any questions you may have or any general support you may need. Want this bot on your server? [Feel free to invite it!](https://discord.com/api/oauth2/authorize?client_id=721514294587424888&permissions=502656214&scope=bot)
+Silk is a simple, and, the fastest Discord bot written in C# until proven otherwise. Built on top of DSharpPlus for Discord API interactions. The goal of Silk! is be not only a great bot, but fill in the gaps that certain bots have. A bot your members will want to use, while not being a cookie-cutter game, moderation, or entertainment bot. Silk! is also made with large guilds in mind. Feel free to join the [Silk! server](https://discord.gg/HZfZb95) to ask any questions you may have or any general support you may need. Want this bot on your server? [Feel free to invite it!](https://discord.com/api/oauth2/authorize?client_id=721514294587424888&permissions=502656214&scope=bot%20applications.commands)
 
 [![CodeQuality](https://www.codefactor.io/repository/github/velvetthepanda/silk/badge)](https://www.codefactor.io/repository/github/velvetthepanda/silk)
 ![CodeSize](https://img.shields.io/github/languages/code-size/VelvetThePanda/Silk)
@@ -34,14 +34,14 @@ Silk uses [PostgreSQL](https://www.postgresql.org/) for its backend database sto
       {
          "ConnectionStrings": {
             "dbConnection": "",
-            "BotToken": ""
+            "botToken": ""
          }
       }
       ```
    - For the ```dbConnection``` property, in the double quotes, add your connection string.
       - Note: The PostgreSQL connection string will look something like this: ```Server=;Database=;Username=;Password=```
    
-   - For the ```BotToken``` property, in the double quotes, add your ```Discord Bot Token```. 
+   - For the ```botToken``` property, in the double quotes, add your ```Discord Bot Token```. 
      - If you don't have your token off-hand, you can get it from the [Discord Developer Portal](https://discord.com/developers); Select your application once logged in, then select ```Bot``` in the menu, and you should be able to Reveal your token from there.
 
 #### **App Secrets**
@@ -91,6 +91,7 @@ Silk uses [PostgreSQL](https://www.postgresql.org/) for its backend database sto
 ## Docker: 
 To run Silk! as a docker container, you can simply create an `appSettings.json` file in the root directory, and run `docker pull velvetthepanda/silk`, assuming you have a postgres database running already. If not, you can download a pre-configured `docker-compose` file [here](https://files.velvetthepanda.dev/docker-compose.yml). 
 
-Both Postgres and Silk! will have to initialize on the first run, and if run without the `-d` flag, you will see an exception thrown as Silk! tries to access tables that don't exist (signifying it needs to migrate). Fear not, running `docker-compose up -d` again will have Postgres configured, and Silk! will create requisite tables if they do not already exist upon startup.
+Both Postgres and Silk! will have to initialize on the first run, which may cause slightly degraded startup times as Silk! creates requisite tables on the database. 
 
+Further startup times should be no more than ~3 seconds to fully initialize and do cache runs.
 ![](https://files.velvetthepanda.dev/silk.png)

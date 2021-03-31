@@ -4,11 +4,13 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using MediatR;
-using Silk.Data.MediatR;
-using Silk.Data.Models;
+using Silk.Core.Utilities.HelpFormatter;
+using Silk.Core.Data.MediatR.Unified.GlobalUsers;
+using Silk.Core.Data.Models;
 
 namespace Silk.Core.Commands.Economy
 {
+    [Category(Categories.Economy)]
     public class FlipCommand : BaseCommandModule
     {
         private readonly string[] _winningMessages =
@@ -42,7 +44,7 @@ namespace Silk.Core.Commands.Economy
             DiscordEmbedBuilder embedBuilder = new();
             builder.WithReply(ctx.Message.Id);
 
-            GlobalUser user = await _mediator.Send(new GlobalUserRequest.GetOrCreate(ctx.User.Id));
+            GlobalUser user = await _mediator.Send(new GetOrCreateGlobalUserRequest(ctx.User.Id));
 
             if (amount > user.Cash)
             {
@@ -77,7 +79,7 @@ namespace Silk.Core.Commands.Economy
             }
 
             await ctx.RespondAsync(builder);
-            await _mediator.Send(new GlobalUserRequest.Update(user.Id) {Cash = user.Cash});
+            await _mediator.Send(new UpdateGlobalUserRequest(user.Id) {Cash = user.Cash});
         }
     }
 }

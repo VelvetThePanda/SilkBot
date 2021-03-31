@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="Abstractions\DSharpPlus\Concrete"/>
+        <Folder Include="Types\DTO"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00822"/>
+    </ItemGroup>
+
+</Project>
