@@ -1,4 +1,6 @@
-﻿@* Top Menu - Thanks to: https://github.com/robalexclark/BlazorTopMenu/tree/master/Blazor-Top-Menu/Shared *@
+﻿@namespace Silk.Dashboard.Components
+
+@* Top Menu - Thanks to: https://github.com/robalexclark/BlazorTopMenu/tree/master/Blazor-Top-Menu/Shared *@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand">Silk Dashboard</a>
@@ -17,11 +19,11 @@
                 </NavLink>
             </li>
             <li class="nav-item">
-                <a href="https://github.com/VelvetThePanda/Silk" target="_blank" class="nav-link text-white">GitHub</a>
+                <a class="nav-link" href="https://github.com/VelvetThePanda/Silk" target="_blank">GitHub</a>
             </li>
         </ul>
 
-        <LoginDisplay />
+        <LoginToolBar />
     </div>
 </nav>
 

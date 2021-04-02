@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Silk.Data;
-using Silk.Data.Models;
+using Silk.Core.Data;
+using Silk.Core.Data.Models;
 
 namespace Silk.Dashboard.Extensions
 {
@@ -11,7 +11,7 @@ namespace Silk.Dashboard.Extensions
         public static async Task<GuildConfig> GetConfig(this DbSet<GuildConfig> configs, ulong guildId)
             => await configs.FirstOrDefaultAsync(gc => gc.GuildId == guildId);
 
-        public static async Task<bool> ChangeConfig(this SilkDbContext context, ulong guildId, GuildConfig newConfig)
+        public static async Task<bool> ChangeConfig(this GuildContext context, ulong guildId, GuildConfig newConfig)
         {
             // TODO: if the config on the guild doesn't exist, need to create add the config to the guild
 

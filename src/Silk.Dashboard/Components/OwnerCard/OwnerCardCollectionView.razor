@@ -1,8 +1,11 @@
-﻿<div class="container">
+﻿@namespace Silk.Dashboard.Components
+
+<div class="container">
     <div class="row d-flex justify-content-center">
         @foreach (var name in Owners.Keys)
         {
-            <OwnerCardView Name="@name" Description="@(Owners[name])" />
+            @* TODO: Make sure that 'Name' is unique for '@key' *@
+            <OwnerCardView @key="@name" Name="@name" Description="@(Owners[name])" />
         }
     </div>
 </div>

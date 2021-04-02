@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <UserSecretsId>VelvetThePanda-SilkBot-Dashboard</UserSecretsId>
         <RootNamespace>Silk.Dashboard</RootNamespace>
+        <UserSecretsId>VelvetThePanda-SilkBot-Dashboard</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,15 +13,16 @@
         <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-rc2" />
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0-preview.1.21102.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Silk.Data\Silk.Data.csproj" />
-      <ProjectReference Include="..\Silk.Extensions\Silk.Extensions.csproj" />
+        <ProjectReference Include="..\Silk.Core.Data\Silk.Core.Data.csproj" />
+        <ProjectReference Include="..\Silk.Extensions\Silk.Extensions.csproj" />
+        <ProjectReference Include="..\Silk.Shared\Silk.Shared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,12 +1,14 @@
-﻿<div class="d-flex align-content-center">
+﻿@namespace Silk.Dashboard.Components
+
+<div class="d-flex align-content-center">
     <div class="container text-center">
-        @if (ImageUrl is not null)
+        @if (HasImage)
         {
             <img class="img-fluid mb-2 rounded-circle" style="max-width: 256px;" src="@ImageUrl" alt="Avatar URL" />
         }
         <h2>@Text</h2>
         @ChildContent
-        <hr style="height: 1px; background-color: #ffffff" />
+        <hr style="height: 1px; background-color: #fff" />
     </div>
 </div>
 
@@ -21,4 +23,5 @@
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
+    private bool HasImage => !string.IsNullOrEmpty(ImageUrl);
 }

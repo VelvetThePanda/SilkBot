@@ -16,10 +16,11 @@ namespace Silk.Dashboard.Pages.Dashboard
         protected override async Task OnInitializedAsync()
         {
             var allGuilds = await RestClientService.GetAllGuildsAsync();
-            _ownedGuilds = RestClientService.GetGuildsByPermission(allGuilds, Permissions.ManageGuild);
+            _ownedGuilds = RestClientService.FilterGuildsByPermission(allGuilds, Permissions.ManageGuild);
         }
 
         private string CurrentUserAvatar => RestClientService.RestClient.CurrentUser.GetAvatarUrl(ImageFormat.Auto);
         private string CurrentUserName => RestClientService.RestClient.CurrentUser.Username;
+        private string HeaderViewGreeting => $"Hello, {CurrentUserName}";
     }
 }

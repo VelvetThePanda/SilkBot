@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Silk.Core.Data;
 using Silk.Dashboard.Services;
-using Silk.Data;
 
 namespace Silk.Dashboard
 {
@@ -27,18 +27,18 @@ namespace Silk.Dashboard
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddBlazoredToast();
-            
+
             services.AddHttpContextAccessor();
-            
+
             // TODO: Add Research/Add other protections against token scraping/stealing
             services.AddDataProtection();
 
             services.AddScoped<DiscordRestClientService>();
 
-            services.AddDbContext<SilkDbContext>(o =>
+            services.AddDbContext<GuildContext>(o =>
                 o.UseNpgsql(Configuration.GetConnectionString("dbConnection")));
 
-            services.AddMediatR(typeof(SilkDbContext));
+            services.AddMediatR(typeof(GuildContext));
 
             services.AddAuthentication(opt =>
                 {
@@ -52,6 +52,11 @@ namespace Silk.Dashboard
                     opt.ClientSecret = Configuration["Discord:AppSecret"];
 
                     opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
+
+                    /*opt.Events.OnCreatingTicket = context =>
+                    {
+                        context.
+                    };*/
 
                     opt.Scope.Add("guilds");
 

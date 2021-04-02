@@ -17,6 +17,7 @@ namespace Silk.Dashboard.Services
         private bool _disposed;
 
         // TODO: (optional) See if there's a way to add auth token to client on successful authentication
+        // TODO: Change to inject IDiscordProtectedTokenOptions (use ProtectedStorage and use proper way of 
         public DiscordRestClientService(IHttpContextAccessor accessor)
         {
             var token = accessor.HttpContext!
@@ -38,9 +39,10 @@ namespace Silk.Dashboard.Services
             => await RestClient.GetCurrentUserGuildsAsync(100, 0, 0);
 
         public async Task<IReadOnlyList<DiscordGuild>> GetGuildsByPermissionAsync(Permissions perms)
-            => (await GetAllGuildsAsync()).Where(g => (g.Permissions & perms) != 0).ToList();
+            => FilterGuildsByPermission(await GetAllGuildsAsync(), perms);
 
-        public IReadOnlyList<DiscordGuild> GetGuildsByPermission(IReadOnlyList<DiscordGuild> guilds, Permissions perms)
+        public IReadOnlyList<DiscordGuild> FilterGuildsByPermission(IReadOnlyList<DiscordGuild> guilds,
+            Permissions perms)
             => guilds.Where(g => (g.Permissions & perms) != 0).ToList();
 
         public void Dispose() => Dispose(true);

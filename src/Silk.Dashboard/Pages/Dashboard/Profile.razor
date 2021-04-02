@@ -3,8 +3,6 @@
 
 @inherits ComponentBase
 
-<HeaderView ImageUrl="@CurrentUserAvatar" Text="@($"Hello, {CurrentUserName}")" />
-
 @if (_ownedGuilds is null)
 {
     <div class="container mt-4">
@@ -13,6 +11,8 @@
 }
 else
 {
+    <HeaderView ImageUrl="@CurrentUserAvatar" Text="@HeaderViewGreeting" />
+
     <div class="container">
         <h3 class="mb-2">Servers You Manage:</h3>
         <GuildCollectionView Guilds="@_ownedGuilds" />

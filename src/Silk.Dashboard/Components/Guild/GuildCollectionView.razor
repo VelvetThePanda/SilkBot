@@ -1,9 +1,11 @@
-﻿@using DSharpPlus.Entities
+﻿@namespace Silk.Dashboard.Components
+
+@using DSharpPlus.Entities
 
 <div class="card-columns">
     @foreach (var guild in Guilds)
     {
-        <GuildView Guild="@guild" />
+        <GuildView @key="@guild.Id" Guild="@guild" />
     }
 </div>
 

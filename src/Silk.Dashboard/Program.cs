@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Silk.Data;
+using Silk.Core.Data;
 
 namespace Silk.Dashboard
 {
@@ -16,7 +15,7 @@ namespace Silk.Dashboard
             var host = CreateHostBuilder(args).Build();
 
             using var serviceScope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<SilkDbContext>();
+            await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<GuildContext>();
 
             var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
             if (pendingMigrations.Any())

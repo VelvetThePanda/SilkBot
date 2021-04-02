@@ -20,7 +20,8 @@ namespace Silk.Dashboard.Controllers
         [HttpGet]
         public IActionResult Login(string returnUrl = "/")
         {
-            var challenge = Challenge(new AuthenticationProperties { RedirectUri = returnUrl }, DiscordAuthenticationDefaults.AuthenticationScheme);
+            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl},
+                DiscordAuthenticationDefaults.AuthenticationScheme);
             return challenge;
         }
 
