@@ -6,12 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Abstractions\DSharpPlus\Concrete"/>
         <Folder Include="Types\DTO"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00822"/>
+        <PackageReference Include="DSharpPlus" Version="4.0.1-nightly-00837"/>
     </ItemGroup>
 
 </Project>

@@ -10,12 +10,15 @@ using Silk.Core.Discord.Utilities.HelpFormatter;
 
 namespace Silk.Core.Discord.Commands.General
 {
-    [Category(Categories.General)]
+    [Category(Categories.Misc)]
     public class PingCommand : BaseCommandModule
     {
         private readonly IDbContextFactory<GuildContext> _dbFactory;
 
-        public PingCommand(IDbContextFactory<GuildContext> dbFactory) => _dbFactory = dbFactory;
+        public PingCommand(IDbContextFactory<GuildContext> dbFactory)
+        {
+            _dbFactory = dbFactory;
+        }
 
         [Command("ping")]
         [Aliases("pong")]

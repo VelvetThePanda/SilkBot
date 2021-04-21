@@ -3,9 +3,9 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 
 WORKDIR /Silk
 COPY . ./
-RUN dotnet restore --disable-parallel
+RUN dotnet restore 
 
-RUN dotnet publish ./src/Silk.Core/Silk.Core.Discord.csproj -c Release -o out 
+RUN dotnet publish ./src/Silk.Core.Logic/Silk.Core.Logic.csproj -c Release -o out 
 
 # Run it
 FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
@@ -18,6 +18,6 @@ RUN apk upgrade --update-cache --available && \
 WORKDIR /Silk
 COPY --from=build /Silk/out .
 
-RUN chmod +x ./Silk.Core
+RUN chmod +x ./Silk.Core.Logic
 
-CMD ["./Silk.Core"]
+CMD ["./Silk.Core.Logic"]

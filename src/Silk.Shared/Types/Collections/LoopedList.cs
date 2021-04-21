@@ -5,9 +5,7 @@ namespace Silk.Shared.Types.Collections
 {
     public sealed class LoopedList<T> : List<T>
     {
-        private int _pos = -1;
-
-        public T Next() => unchecked(this[++_pos]);
+        private uint _pos;
 
         public new T this[int index]
         {
@@ -15,14 +13,11 @@ namespace Silk.Shared.Types.Collections
             set
             {
                 if (Count is 0)
-                {
                     throw new ArgumentOutOfRangeException(nameof(index), "Colletion must be non-empty.");
-                }
-                else
-                {
-                    base[index % Count] = value;
-                }
+                base[index % Count] = value;
             }
         }
+
+        public T Next() => unchecked(this[(int) _pos++]);
     }
 }

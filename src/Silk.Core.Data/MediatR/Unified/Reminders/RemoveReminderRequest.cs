@@ -7,12 +7,12 @@ using Silk.Core.Data.Models;
 namespace Silk.Core.Data.MediatR.Unified.Reminders
 {
     /// <summary>
-    /// Request to remove a reminder.
+    ///     Request to remove a reminder.
     /// </summary>
     public record RemoveReminderRequest(int ReminderId) : IRequest;
 
     /// <summary>
-    /// The default handler for <see cref="RemoveReminderRequest"/>.
+    ///     The default handler for <see cref="RemoveReminderRequest" />.
     /// </summary>
     public class RemoveReminderHandler : IRequestHandler<RemoveReminderRequest>
     {
@@ -34,9 +34,7 @@ namespace Silk.Core.Data.MediatR.Unified.Reminders
                     await _db.SaveChangesAsync(cancellationToken);
                 }
                 // Timer timed out and it got dequeued slower than it should've. //
-                catch (DbUpdateConcurrencyException)
-                {
-                }
+                catch (DbUpdateConcurrencyException) { }
             }
 
             return new();
