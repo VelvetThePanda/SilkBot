@@ -7,10 +7,11 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Silk.Core.Data.MediatR.Unified.Guilds;
-using Silk.Core.Data.MediatR.Unified.Users;
+using Silk.Core.Data.MediatR.Guilds;
+using Silk.Core.Data.MediatR.Users;
 using Silk.Core.Data.Models;
 using Silk.Core.Discord.Constants;
+using Silk.Core.Discord.Types;
 using Silk.Extensions;
 
 namespace Silk.Core.Discord.EventHandlers
@@ -18,6 +19,8 @@ namespace Silk.Core.Discord.EventHandlers
     //This relies on multiple events to update its state, so we can't implement INotificationHandler.
     public class GuildAddedHandler
     {
+        public static bool StartupCompleted { get; private set; }
+
         private readonly object _lock = new();
         private readonly ILogger<GuildAddedHandler> _logger;
         private readonly IMediator _mediator;
@@ -36,7 +39,7 @@ namespace Silk.Core.Discord.EventHandlers
             foreach ((int key, _) in shards)
                 _shardStates.Add(key, new());
         }
-        public static bool StartupCompleted { get; private set; }
+
 
 
         /// <summary>
@@ -44,6 +47,9 @@ namespace Silk.Core.Discord.EventHandlers
         /// </summary>
         public async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs eventArgs)
         {
+            if (Bot.State is not BotState.Caching)
+                Bot.State = BotState.Caching;
+
             _ = await _mediator.Send(new GetOrCreateGuildRequest(eventArgs.Guild.Id, Bot.DefaultCommandPrefix));
             int cachedMembers = await CacheGuildMembers(eventArgs.Guild.Members.Values);
 
@@ -85,6 +91,7 @@ namespace Silk.Core.Discord.EventHandlers
             {
                 _logger.LogDebug("All shard(s) cache runs complete!");
                 _logged = true;
+                Bot.State = BotState.Ready;
             }
         }
 

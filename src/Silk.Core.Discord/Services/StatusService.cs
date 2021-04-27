@@ -6,6 +6,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Silk.Core.Discord.Types;
 using Silk.Shared.Types.Collections;
 
 namespace Silk.Core.Discord.Services
@@ -21,28 +22,28 @@ namespace Silk.Core.Discord.Services
             "for @Silk help",
             "you!",
             "cute red pandas",
-            "for commands!"
+            "for commands!",
+            "patreon/VelvetThePanda",
+            "ko-fi.com/VelvetThePanda",
+            "for donations! (ko-fi/patreon: VelvetThePanda)"
         };
-        private bool _ready = false;
+        private bool _ready => Bot.State is BotState.Ready;
 
 
         public StatusService(DiscordShardedClient client, ILogger<StatusService> logger)
         {
             _client = client;
             _logger = logger;
-
-            client.GuildDownloadCompleted += (_, _) =>
-            {
-                _ready = true;
-                return Task.CompletedTask;
-            };
         }
 
-        // This service starts before the client actually connects to Discord, so we need to wait. //
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogWarning("Waiting for client to connect to gateway");
-            while (!_ready) { await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); }
+            if (!_ready) // This should be started after the state is ready, but you never know. //
+            {
+                _logger.LogWarning("Waiting for client to connect to gateway");
+                while (!_ready) { await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken); }
+            }
+
             _logger.LogInformation("Started!");
 
             try
@@ -59,7 +60,7 @@ namespace Silk.Core.Discord.Services
             catch (TaskCanceledException) { }
             finally
             {
-                _logger.LogDebug("Cancelation requested. Stopping service");
+                _logger.LogDebug("Cancelation requested. Stopping service. ");
             }
         }
     }

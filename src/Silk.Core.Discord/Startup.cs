@@ -35,18 +35,14 @@ namespace Silk.Core.Discord
 
             services.AddSingleton<TagService>();
 
-
-
             services.AddSingleton<IMessageSender, MessageSenderService>();
+            services.AddHostedService<Bot>();
 
             //Copped this hack from: https://stackoverflow.com/a/65552373 //
             services.AddSingleton<ReminderService>();
-
             services.AddHostedService(b => b.GetRequiredService<ReminderService>());
+
             services.AddHostedService<StatusService>();
-            services.AddHostedService<Bot>();
-
-
 
             services.AddMediatR(typeof(Program));
             services.AddMediatR(typeof(GuildContext));

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Silk.Core.Data;
@@ -27,6 +28,7 @@ namespace Silk.Core.Logic
             builder.UseConsoleLifetime();
 
             await builder.RunConsoleAsync().ConfigureAwait(false);
+
         }
         // EFCore calls this. //
         public static IHostBuilder CreateHostBuilder(string[] args)
@@ -50,25 +52,26 @@ namespace Silk.Core.Logic
         private static void AddLogging(IHostBuilder host)
         {
             host.ConfigureLogging((builder, _) =>
-            {
-                var logger = new LoggerConfiguration()
-                    .WriteTo.Console(outputTemplate: LogFormat, theme: SerilogThemes.Bot)
-                    .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, LogFormat, rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
-                    .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
-                    .MinimumLevel.Override("DSharpPlus", LogEventLevel.Warning);
-
-                Log.Logger = builder.Configuration["LogLevel"] switch
                 {
-                    "All" => logger.MinimumLevel.Verbose().CreateLogger(),
-                    "Info" => logger.MinimumLevel.Information().CreateLogger(),
-                    "Debug" => logger.MinimumLevel.Debug().CreateLogger(),
-                    "Warning" => logger.MinimumLevel.Warning().CreateLogger(),
-                    "Error" => logger.MinimumLevel.Error().CreateLogger(),
-                    "Panic" => logger.MinimumLevel.Fatal().CreateLogger(),
-                    _ => logger.MinimumLevel.Information().CreateLogger()
-                };
-                Log.Logger.ForContext(typeof(Startup)).Information("[BACKEND] Logging initialized!");
-            });
+                    var logger = new LoggerConfiguration()
+                        .WriteTo.Console(outputTemplate: LogFormat, theme: SerilogThemes.Bot)
+                        .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, LogFormat, rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+                        .MinimumLevel.Override("DSharpPlus", LogEventLevel.Warning);
+
+                    Log.Logger = builder.Configuration["LogLevel"] switch
+                    {
+                        "All" => logger.MinimumLevel.Verbose().CreateLogger(),
+                        "Info" => logger.MinimumLevel.Information().CreateLogger(),
+                        "Debug" => logger.MinimumLevel.Debug().CreateLogger(),
+                        "Warning" => logger.MinimumLevel.Warning().CreateLogger(),
+                        "Error" => logger.MinimumLevel.Error().CreateLogger(),
+                        "Panic" => logger.MinimumLevel.Fatal().CreateLogger(),
+                        _ => logger.MinimumLevel.Information().CreateLogger()
+                    };
+                    Log.Logger.ForContext(typeof(Startup)).Information("Logging initialized!");
+                })
+                .UseSerilog();
         }
 
         private static IHostBuilder ConfigureServices(IHostBuilder builder)
@@ -77,6 +80,7 @@ namespace Silk.Core.Logic
             {
                 var config = context.Configuration;
                 AddDatabases(services, config.GetConnectionString("core"));
+                services.AddScoped(typeof(ILogger<>), typeof(Shared.Types.Logger<>));
             });
         }
 
@@ -93,8 +97,8 @@ namespace Silk.Core.Logic
 
             services.AddDbContext<GuildContext>(Builder, ServiceLifetime.Transient);
             services.AddDbContextFactory<GuildContext>(Builder, ServiceLifetime.Transient);
-
-            services.AddTransient<DbContextOptions<GuildContext>>(_ => new DbContextOptionsBuilder<GuildContext>().UseNpgsql(connectionString).Options);
+            using var scope = services.BuildServiceProvider().CreateScope();
+            services.AddTransient(_ => new DbContextOptionsBuilder<GuildContext>().UseNpgsql(connectionString).Options);
         }
     }
 }

@@ -12,7 +12,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Silk.Core.Data.MediatR.Unified.Reminders;
+using Silk.Core.Data.MediatR.Reminders;
 using Silk.Core.Data.Models;
 using Silk.Extensions;
 using Silk.Extensions.DSharpPlus;
@@ -62,9 +62,9 @@ namespace Silk.Core.Discord.Services
             Reminder? reminder = _reminders.SingleOrDefault(r => r.Id == id);
             if (reminder is not null)
             {
+                _reminders.Remove(reminder);
                 using IServiceScope scope = _services.CreateScope();
                 var mediator = _services.CreateScope().ServiceProvider.Get<IMediator>();
-                _reminders.Remove(reminder);
                 await mediator!.Send(new RemoveReminderRequest(id));
             }
         }
@@ -94,6 +94,7 @@ namespace Silk.Core.Discord.Services
                 if (reminder.Type is ReminderType.Once)
                 {
                     await SendGuildReminderAsync(reminder, guild);
+                    await RemoveReminderAsync(reminder.Id);
                 }
                 else
                 {
@@ -124,11 +125,8 @@ namespace Silk.Core.Discord.Services
         private async Task SendGuildReminderAsync(Reminder reminder, DiscordGuild guild)
         {
             if (reminder.Type is ReminderType.Once)
-            {
                 _logger.LogTrace("Dequeing reminder");
-                _reminders.Remove(reminder);
-                await RemoveReminderAsync(reminder.Id);
-            }
+
             if (!guild.Channels.TryGetValue(reminder.ChannelId, out var channel)) { await SendDmReminderMessageAsync(reminder, guild); }
             else { await SendGuildReminderMessageAsync(reminder, channel); }
         }
@@ -226,7 +224,7 @@ namespace Silk.Core.Discord.Services
             catch (TaskCanceledException) { }
             finally
             {
-                _logger.LogDebug("Cancelation requested. Stopping service");
+                _logger.LogDebug("Cancelation requested. Stopping service. ");
                 await timer.DisposeAsync();
                 // It's safe to clear the list as it's all saved to the database prior when they're added. //
                 _reminders.Clear();

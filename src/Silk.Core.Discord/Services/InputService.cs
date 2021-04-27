@@ -8,6 +8,7 @@ using DSharpPlus.Interactivity.Extensions;
 using Silk.Core.Discord.Constants;
 using Silk.Core.Discord.Services.Interfaces;
 using Silk.Core.Discord.Utilities.Bot;
+using Silk.Shared.Abstractions.DSharpPlus.Concrete;
 using Silk.Shared.Abstractions.DSharpPlus.Interfaces;
 
 namespace Silk.Core.Discord.Services
@@ -29,9 +30,16 @@ namespace Silk.Core.Discord.Services
             return await WaitForInputAsync(interactivity, userId, channelId, guildId, timeOut);
         }
 
-        public async Task<IReaction?> GetReactionInputAsync(ulong userId, ulong channelId, ulong messageId, ulong? guildId = null, TimeSpan? timeOut = null)
+        public async Task<IMessage?> GetInputAsync(ulong userId, ulong channelId, ulong? guildId, TimeSpan? timeOut = null)
         {
-            throw new NotImplementedException();
+            var interactivity = GetInteractivityInternal(guildId);
+            return (Message) (await interactivity.WaitForMessageAsync(m => m.Author.Id == userId && m.Channel.Id == channelId)).Result!;
+        }
+
+        public async Task<IReaction?> GetReactionInputAsync(ulong userId, ulong messageId, ulong? guildId = null, TimeSpan? timeOut = null)
+        {
+            var interactivity = GetInteractivityInternal(guildId);
+            return (Reaction) (await interactivity.WaitForReactionAsync(r => r.Message.Id == messageId && r.User.Id == userId)).Result;
         }
 
         public async Task<IChannel?> GetChannelAsync(ulong userId, ulong channelId, ulong guildId, TimeSpan? timeOut = null)
@@ -47,7 +55,8 @@ namespace Silk.Core.Discord.Services
             var yes = DiscordEmoji.FromGuildEmote(client, Emojis.ConfirmId);
             var no = DiscordEmoji.FromGuildEmote(client, Emojis.DeclineId);
 
-
+            await message.CreateReactionAsync(Emojis.ConfirmId);
+            await message.CreateReactionAsync(Emojis.DeclineId);
 
             var result = await interactivity.WaitForReactionAsync(r => r.Emoji == yes || r.Emoji == no && r.User.Id == userId);
 
