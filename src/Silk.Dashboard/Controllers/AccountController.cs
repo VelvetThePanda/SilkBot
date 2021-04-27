@@ -2,30 +2,24 @@
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Silk.Dashboard.Controllers
 {
-    [Route("[controller]/[action]")]
+    [Route("api/silk/[controller]")]
+    [ApiController]
     public class AccountController : ControllerBase
     {
-        private IDataProtectionProvider Provider { get; }
-
-        public AccountController(IDataProtectionProvider provider)
-        {
-            Provider = provider;
-        }
-
-        [HttpGet]
+        [HttpGet("login")]
+        [HttpPost("login")]
         public IActionResult Login(string returnUrl = "/")
         {
-            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl},
-                DiscordAuthenticationDefaults.AuthenticationScheme);
+            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl}, DiscordAuthenticationDefaults.AuthenticationScheme);
             return challenge;
         }
 
-        [HttpGet]
+        [HttpGet("logout")]
+        [HttpPost("logout")]
         public async Task<IActionResult> LogOut(string returnUrl = "/")
         {
             // This removes the cookie assigned to the user login.

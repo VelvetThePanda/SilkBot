@@ -1,5 +1,7 @@
 @using Silk.Dashboard.Extensions
 @using Blazored.Toast.Configuration
+@using Silk.Dashboard.Models
+@using Silk.Dashboard.Services
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
@@ -35,3 +37,18 @@
                 SuccessClass="success-toast-override"
                 SuccessIcon="fa fa-thumbs-up"
                 ErrorIcon="fa fa-times" />
+
+@code
+{
+    [Inject]
+    public DashboardTokenStorageService TokenStorageService { get; set; }
+
+    [Parameter]
+    public AppState InitialState { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        TokenStorageService.SetToken(InitialState.Token);
+        return base.OnInitializedAsync();
+    }
+}

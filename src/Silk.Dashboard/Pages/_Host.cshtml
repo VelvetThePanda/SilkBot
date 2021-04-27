@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using System.Globalization
+@using Microsoft.AspNetCore.Authentication
+@using Silk.Dashboard.Models
 @namespace Silk.Dashboard.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -36,7 +39,27 @@
     <link href="Silk.Dashboard.styles.css" rel="stylesheet" />
 </head>
 <body>
-<component type="typeof(App)" render-mode="Server" />
+
+@* Todo: Use Cascading parameter for storing OAuth Token since this is the only 'real' place to get access to the HttpContext b/c besides here, com is over WebSocket *@
+@{
+    DateTimeOffset? accessTokenExpiresAt = null;
+
+    @* Todo: Check whether need to use UTC values for Token Expiry from Response *@
+    if (DateTimeOffset.TryParse(await HttpContext.GetTokenAsync("expires_at"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var convertedDateTime))
+    {
+        accessTokenExpiresAt = convertedDateTime;
+    }
+
+    var appState = new AppState
+    {
+        Token = new(
+            await HttpContext.GetTokenAsync("access_token"),
+            await HttpContext.GetTokenAsync("refresh_token"),
+            accessTokenExpiresAt)
+    };
+}
+
+<component type="typeof(App)" render-mode="Server" param-InitialState="@appState" />
 
 <div id="blazor-error-ui">
     <environment include="Staging,Production">

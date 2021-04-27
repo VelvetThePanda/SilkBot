@@ -1,23 +1,28 @@
 ﻿@page "/"
+@using Silk.Dashboard.Models
 
 <div class="jumbotron mb-3 p-4">
     <HeaderView Text="Welcome to Silk!" ImageUrl="https://files.velvetthepanda.dev/silk_stable.png">
-        <a href="https://discord.com/api/oauth2/authorize?client_id=721514294587424888&permissions=502656214&scope=bot%20applications.commands" target="_blank" class="btn btn-primary text-center">Invite Me!</a>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=721514294587424888&permissions=502656214&scope=bot%20applications.commands"
+           target="_blank"
+           class="btn btn-primary text-center">
+            Invite Me!
+        </a>
     </HeaderView>
     <h3 class="text-center mb-3">Meet my creators!</h3>
     <OwnerCardCollectionView Owners="@_owners" />
 </div>
 
 @code {
-    private Dictionary<string, string> _owners;
+    private List<SilkOwner> _owners;
 
     protected override void OnInitialized()
     {
-        _owners = new Dictionary<string, string>
+        _owners = new List<SilkOwner>
         {
-            {"VelvetThePanda", "Founder and Lead Developer of Silk"},
-            {"NatsumiHB", "Infrastructure Admin and Helper"},
-            {"CalebABG", "Dashboard Developer and Helper"}
+            new("VelvetThePanda", "Founder and Lead Developer of Silk", "https://github.com/VelvetThePanda.png"),
+            new("NatsumiHB", "Infrastructure Admin and Helper", "https://github.com/nullfact0r.png"),
+            new("CalebABG", "Dashboard Developer and Helper", "https://github.com/CalebABG.png"),
         };
     }
 

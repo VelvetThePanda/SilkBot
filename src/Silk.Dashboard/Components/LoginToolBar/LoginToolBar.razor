@@ -4,10 +4,10 @@
     <Authorized>
         <div class="btn-group" role="group" aria-label="LoginToolBar">
             <a class="btn btn-secondary" href="Dashboard/Profile">@context.User.Identity?.Name</a>
-            <a class="btn btn-primary" href="Account/LogOut">Log Out</a>
+            <a class="btn btn-primary" href="api/silk/account/logout">Log Out</a>
         </div>
     </Authorized>
     <NotAuthorized>
-        <a class="btn btn-primary" href="Account/Login">Log In</a>
+        <a class="btn btn-primary" href="api/silk/account/login">Log In</a>
     </NotAuthorized>
 </AuthorizeView>

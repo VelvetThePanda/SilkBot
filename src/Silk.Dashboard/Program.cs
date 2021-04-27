@@ -1,10 +1,6 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Silk.Core.Data;
 
 namespace Silk.Dashboard
 {
@@ -12,17 +8,8 @@ namespace Silk.Dashboard
     {
         public static async Task Main(string[] args)
         {
+            /* Todo: Fix Migrations (need to start Silk.Core.Logic currently if Postgre database for Silk has not been created) */
             var host = CreateHostBuilder(args).Build();
-
-            using var serviceScope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var dbContext = serviceScope.ServiceProvider.GetRequiredService<GuildContext>();
-
-            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
-            if (pendingMigrations.Any())
-            {
-                await dbContext.Database.MigrateAsync();
-            }
-
             await host.RunAsync();
         }
 

@@ -5,13 +5,13 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Components;
-using Silk.Core.Data.MediatR.Unified.Guilds;
+using Silk.Core.Data.MediatR.Guilds;
 using Silk.Core.Data.Models;
 using Silk.Dashboard.Services;
 
 namespace Silk.Dashboard.Pages.Dashboard
 {
-    public partial class Manage : ComponentBase
+    public partial class ManageGuild : ComponentBase
     {
         [Inject] private DiscordRestClientService RestClientService { get; set; }
         [Inject] private NavigationManager NavigationManager { get; set; }
@@ -49,7 +49,7 @@ namespace Silk.Dashboard.Pages.Dashboard
 
         private async Task<Guild> GetOrCreateNewGuild()
         {
-            // TODO: Replace this w/ Default Prefix
+            // TODO: Replace this w/ Default Prefix constant (define prefix constant in Shared project?)
             return await Mediator.Send(new GetOrCreateGuildRequest(ulong.Parse(this.GuildId), "s!"));
         }
 
