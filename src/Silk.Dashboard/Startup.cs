@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
 using Blazored.Toast;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
@@ -61,7 +62,7 @@ namespace Silk.Dashboard
                     opt.Events.OnCreatingTicket = context =>
                     {
                         var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
-                        var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.Items[".Token.expires_at"]);
+                        var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.GetTokenValue("expires_at"));
                         tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
                         return Task.CompletedTask;
                     };
