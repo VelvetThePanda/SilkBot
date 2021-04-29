@@ -31,12 +31,12 @@ namespace Silk.Dashboard
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            
+
             services.AddBlazoredToast();
             services.AddDataProtection();
-            
+
             services.AddHttpClient();
-            
+
             services.AddSingleton<IDashboardTokenStorageService, DashboardTokenStorageService>();
             services.AddScoped<DiscordRestClientService>();
 
@@ -51,30 +51,31 @@ namespace Silk.Dashboard
                     opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     opt.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
                 })
-                .AddDiscord(opt =>
-                {
-                    /* Todo: Change UserSecrets Keys to "ClientId and ClientSecret" */
-                    opt.ClientId = Configuration["Discord:AppId"];
-                    opt.ClientSecret = Configuration["Discord:AppSecret"];
-
-                    opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
-
-                    opt.Events.OnCreatingTicket = context =>
+                .AddOAuth<DiscordAuthenticationOptions, DashboardDiscordAuthenticationHandler>(
+                    DiscordAuthenticationDefaults.AuthenticationScheme, 
+                    DiscordAuthenticationDefaults.DisplayName, 
+                    opt =>
                     {
-                        var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
-                        var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.GetTokenValue("expires_at"));
-                        tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
-                        return Task.CompletedTask;
-                    };
-                    
-                    opt.Scope.Add("guilds");
+                        /* Todo: Change UserSecrets Keys to "ClientId and ClientSecret" */
+                        opt.ClientId = Configuration["Discord:AppId"];
+                        opt.ClientSecret = Configuration["Discord:AppSecret"];
 
-                    opt.UsePkce = true;
-                    opt.SaveTokens = true;
-                })
-                .AddCookie(opts =>
-                {
-                });
+                        opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
+
+                        opt.Events.OnCreatingTicket = context =>
+                        {
+                            var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
+                            var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.GetTokenValue("expires_at"));
+                            tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
+                            return Task.CompletedTask;
+                        };
+
+                        opt.Scope.Add("guilds");
+
+                        opt.UsePkce = true;
+                        opt.SaveTokens = true;
+                    })
+                .AddCookie(opts => { });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
