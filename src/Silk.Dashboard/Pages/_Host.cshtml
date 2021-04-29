@@ -40,22 +40,14 @@
 </head>
 <body>
 
-@* Todo: Use Cascading parameter for storing OAuth Token since this is the only 'real' place to get access to the HttpContext b/c besides here, com is over WebSocket *@
 @{
-    DateTimeOffset? accessTokenExpiresAt = null;
-
-    @* Todo: Check whether need to use UTC values for Token Expiry from Response *@
-    if (DateTimeOffset.TryParse(await HttpContext.GetTokenAsync("expires_at"), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var convertedDateTime))
-    {
-        accessTokenExpiresAt = convertedDateTime;
-    }
-
+    var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(await HttpContext.GetTokenAsync("expires_at"));
     var appState = new AppState
     {
         Token = new(
             await HttpContext.GetTokenAsync("access_token"),
             await HttpContext.GetTokenAsync("refresh_token"),
-            accessTokenExpiresAt)
+            tokenExpiration)
     };
 }
 

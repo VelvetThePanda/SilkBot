@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
 using Blazored.Toast;
 using MediatR;
@@ -57,14 +58,12 @@ namespace Silk.Dashboard
 
                     opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
 
-                    opt.Events.OnCreatingTicket = async (OAuthCreatingTicketContext context) =>
+                    opt.Events.OnCreatingTicket = context =>
                     {
-                        var tokenStorageService = context.HttpContext.RequestServices
-                            .GetRequiredService<DashboardTokenStorageService>();
-                        
-                        /* Todo: Check whether need to use UTC values for Token Expiry from Response */
-                        var dateTimeOffset = DateTimeOffset.UtcNow.Add(context.ExpiresIn.Value);
-                        tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, dateTimeOffset));
+                        var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<DashboardTokenStorageService>();
+                        var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.Items[".Token.expires_at"]);
+                        tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
+                        return Task.CompletedTask;
                     };
                     
                     opt.Scope.Add("guilds");
