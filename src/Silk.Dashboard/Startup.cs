@@ -36,7 +36,7 @@ namespace Silk.Dashboard
             
             services.AddHttpClient();
             
-            services.AddSingleton<DashboardTokenStorageService>();
+            services.AddSingleton<IDashboardTokenStorageService, DashboardTokenStorageService>();
             services.AddScoped<DiscordRestClientService>();
 
             services.AddDbContext<GuildContext>(o =>
@@ -60,7 +60,7 @@ namespace Silk.Dashboard
 
                     opt.Events.OnCreatingTicket = context =>
                     {
-                        var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<DashboardTokenStorageService>();
+                        var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
                         var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.Items[".Token.expires_at"]);
                         tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
                         return Task.CompletedTask;

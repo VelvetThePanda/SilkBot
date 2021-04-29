@@ -12,7 +12,7 @@ namespace Silk.Dashboard.Services
         private bool _disposed;
         public DiscordRestClient RestClient { get; }
 
-        public DiscordRestClientService(DashboardTokenStorageService tokenStorageService)
+        public DiscordRestClientService(IDashboardTokenStorageService tokenStorageService)
         {
             RestClient = new DiscordRestClient(new DiscordConfiguration
             {

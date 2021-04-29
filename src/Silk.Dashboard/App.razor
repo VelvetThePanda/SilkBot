@@ -41,7 +41,7 @@
 @code
 {
     [Inject]
-    public DashboardTokenStorageService TokenStorageService { get; set; }
+    public IDashboardTokenStorageService TokenStorageService { get; set; }
 
     [Parameter]
     public AppState InitialState { get; set; }
