@@ -30,6 +30,7 @@ namespace Silk.Dashboard
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddControllers();
             services.AddServerSideBlazor();
 
             services.AddBlazoredToast();
@@ -37,7 +38,7 @@ namespace Silk.Dashboard
 
             services.AddHttpClient();
 
-            services.AddSingleton<IDashboardTokenStorageService, DashboardTokenStorageService>();
+            services.AddScoped<IDashboardTokenStorageService, DashboardTokenStorageService>();
             services.AddScoped<DiscordRestClientService>();
 
             services.AddDbContext<GuildContext>(o =>
@@ -101,7 +102,7 @@ namespace Silk.Dashboard
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
-                endpoints.MapDefaultControllerRoute();
+                endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

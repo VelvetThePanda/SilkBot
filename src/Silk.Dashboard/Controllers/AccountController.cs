@@ -14,7 +14,8 @@ namespace Silk.Dashboard.Controllers
         [HttpPost("login")]
         public IActionResult Login(string returnUrl = "/")
         {
-            var challenge = Challenge(new AuthenticationProperties {RedirectUri = returnUrl}, DiscordAuthenticationDefaults.AuthenticationScheme);
+            var safeReturnUrl = EnsureLocalRedirectUrl(returnUrl);
+            var challenge = Challenge(new AuthenticationProperties {RedirectUri = safeReturnUrl}, DiscordAuthenticationDefaults.AuthenticationScheme);
             return challenge;
         }
 
@@ -24,7 +25,21 @@ namespace Silk.Dashboard.Controllers
         {
             // This removes the cookie assigned to the user login.
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect(returnUrl);
+            var safeReturnUrl = EnsureLocalRedirectUrl(returnUrl);
+            return LocalRedirect(safeReturnUrl);
+        }
+
+        /// <summary>
+        /// Helper method to protect against Redirect attacks
+        /// </summary>
+        /// <param name="returnUrl">Optional redirect url</param>
+        /// <returns>Safe redirect url. Defaults to "/" if parameter is null or a non-local url</returns>
+        private string EnsureLocalRedirectUrl(string returnUrl)
+        {
+            const string defaultReturnUrl = "/";
+            var temp = string.IsNullOrWhiteSpace(returnUrl) ? defaultReturnUrl : returnUrl;
+            var newReturnUrl = Url.IsLocalUrl(temp) ? temp : defaultReturnUrl;
+            return newReturnUrl;
         }
     }
 }
