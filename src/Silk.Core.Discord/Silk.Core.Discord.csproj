@@ -44,14 +44,15 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="AsyncEnumerator" Version="4.0.2"/>
         <PackageReference Include="Colorful.Console" Version="1.2.15"/>
         <PackageReference Include="CommandLineParser" Version="2.9.0-preview1"/>
-        <PackageReference Include="DSharpPlus" Version="4.0.0"/>
-        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0"/>
+        <PackageReference Include="DSharpPlus" Version="4.1.0-nightly-00857"/>
+        <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0-nightly-00857"/>
         <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0"/>
-        <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0"/>
+        <PackageReference Include="DSharpPlus.VoiceNext" Version="4.1.0-nightly-00857"/>
         <PackageReference Include="FluentAssertions" Version="6.0.0-alpha0002"/>
-        <PackageReference Include="Humanizer" Version="2.8.26"/>
+        <PackageReference Include="Humanizer" Version="2.9.9"/>
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2"/>
         <PackageReference Include="MathParser.org-mXparser" Version="4.4.2"/>
         <PackageReference Include="MediatR" Version="9.0.0"/>
@@ -105,10 +106,6 @@
         <Compile Remove="Commands\Bot\GuildJoinHandler.cs"/>
         <Compile Remove="Commands\Bot\Restart.cs"/>
         <Compile Remove="logs\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Commands\Experimental"/>
     </ItemGroup>
 
 </Project>
