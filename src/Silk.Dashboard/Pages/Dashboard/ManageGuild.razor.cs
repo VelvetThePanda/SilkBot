@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Silk.Core.Data.MediatR.Guilds;
 using Silk.Core.Data.Models;
 using Silk.Dashboard.Services;
+using Silk.Shared.Constants;
 
 namespace Silk.Dashboard.Pages.Dashboard
 {
@@ -49,8 +50,7 @@ namespace Silk.Dashboard.Pages.Dashboard
 
         private async Task<Guild> GetOrCreateNewGuild()
         {
-            // TODO: Replace this w/ Default Prefix constant (define prefix constant in Shared project?)
-            return await Mediator.Send(new GetOrCreateGuildRequest(ulong.Parse(this.GuildId), "s!"));
+            return await Mediator.Send(new GetOrCreateGuildRequest(ulong.Parse(this.GuildId), StringConstants.DefaultCommandPrefix));
         }
 
         private UpdateGuildConfigRequest CompleteUpdateGuildConfigRequest()
