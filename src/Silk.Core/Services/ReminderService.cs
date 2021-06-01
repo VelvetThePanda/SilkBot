@@ -84,7 +84,7 @@ namespace Silk.Core.Services
         private async Task DispatchReminderAsync(Reminder reminder)
         {
             var guilds = _client.ShardClients.SelectMany(s => s.Value.Guilds);
-            if (!(guilds.FirstOrDefault(g => g.Key == reminder.GuildId).Value is { } guild))
+            if (guilds.FirstOrDefault(g => g.Key == reminder.GuildId).Value is not { } guild)
             {
                 _logger.LogWarning("Couldn't find guild {GuildId}! Removing reminders from queue", reminder.GuildId);
                 _reminders.RemoveAll(r => r.GuildId == reminder.GuildId);
