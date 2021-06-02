@@ -11,7 +11,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using Serilog.Hosting;
+using Serilog.Extensions.Logging;
+using Serilog.Filters;
 using Silk.Core.Data;
 using Silk.Core.EventHandlers;
 using Silk.Core.EventHandlers.Guilds;
@@ -73,7 +74,7 @@ namespace Silk.Core
                         .WriteTo.Console(outputTemplate: StringConstants.LogFormat, theme: SerilogThemes.Bot)
                         .WriteTo.File("./logs/silkLog.log", LogEventLevel.Verbose, StringConstants.LogFormat, retainedFileCountLimit: null)
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                        .MinimumLevel.Override("DSharpPlus", LogEventLevel.Fatal);
+                        .Filter.ByExcluding(Matching.FromSource("DSharpPlus"));
 
                     Log.Logger = builder.Configuration["LogLevel"] switch
                     {
@@ -122,6 +123,7 @@ namespace Silk.Core
                 services.AddSingleton<MessageAddAntiInvite>();
 
                 services.AddSingleton<EventHelper>();
+                services.AddSingleton<ButtonHandlerService>();
 
                 services.AddScoped<IInputService, InputService>();
                 services.AddScoped<IPrefixCacheService, PrefixCacheService>();

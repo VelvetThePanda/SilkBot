@@ -2,7 +2,6 @@
 using Silk.Core.EventHandlers;
 using Silk.Core.EventHandlers.Guilds;
 using Silk.Core.EventHandlers.MemberAdded;
-using Silk.Core.EventHandlers.MemberRemoved;
 using Silk.Core.EventHandlers.Messages;
 using Silk.Core.EventHandlers.Messages.AutoMod;
 using Silk.Core.EventHandlers.Reactions;
@@ -10,7 +9,7 @@ using Silk.Core.EventHandlers.Reactions;
 namespace Silk.Core.Utilities
 {
     /// <summary>
-    ///     Helper class for subscribing events to <see cref="DiscordShardedClient" />
+    /// Helper class for subscribing events to <see cref="DiscordShardedClient"/>
     /// </summary>
     public class EventHelper
     {
@@ -22,8 +21,8 @@ namespace Silk.Core.Utilities
             MemberAddedHandler memberAddedHandler,
             RoleAddedHandler staffCheck,
             RoleMenuReactionService roleMenu,
-            GuildEventHandlers guildHandlers,
-            MemberRemovedHandler memberRemovedHandler)
+            ButtonHandlerService buttonHandlerService,
+            GuildEventHandlers guildHandlers)
         {
 
             client.MessageCreated += commandHandler.Handle;
@@ -31,7 +30,6 @@ namespace Silk.Core.Utilities
             client.MessageDeleted += removeHandler.MessageRemoved;
 
             client.GuildMemberAdded += memberAddedHandler.OnMemberAdded;
-            client.GuildMemberRemoved += memberRemovedHandler.OnMemberRemoved;
             client.GuildMemberUpdated += staffCheck.CheckStaffRole;
 
             client.MessageReactionAdded += roleMenu.OnAdd;
@@ -41,6 +39,7 @@ namespace Silk.Core.Utilities
             client.GuildCreated += guildHandlers.OnGuildJoin;
             client.GuildAvailable += guildHandlers.OnGuildAvailable;
             client.GuildDownloadCompleted += guildHandlers.OnGuildDownload;
+            client.ComponentInteractionCreated += buttonHandlerService.OnButtonPress;
         }
     }
 }

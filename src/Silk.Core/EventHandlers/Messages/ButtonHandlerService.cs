@@ -10,7 +10,7 @@ using Silk.Core.Services;
 
 namespace Silk.Core.EventHandlers.Messages
 {
-    public sealed class ButtonHandlerService
+    public class ButtonHandlerService
     {
         private readonly ILogger<ButtonHandlerService> _logger;
         private readonly ConfigService _config;
@@ -58,7 +58,7 @@ namespace Silk.Core.EventHandlers.Messages
                 }
                 else
                 {
-                    await member.GrantRoleAsync(role);
+                    await member.RevokeRoleAsync(role);
                     await args.Interaction.CreateFollowupMessageAsync(new() {Content = $"Done! You now have {role.Mention}.", IsEphemeral = true});
                 }
             }
