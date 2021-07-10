@@ -10,6 +10,10 @@ namespace Silk.Core.Data.MediatR.Guilds
 {
     /// <summary>
     ///     Request for updating a <see cref="GuildConfig" /> for a Guild.
+    ///     <remarks>
+    ///         When it comes to collections, such as <see cref="SelfAssignableRoles" /> only the *added* elements should be passed to this request,
+    ///         else they'll be removed.
+    ///     </remarks>
     /// </summary>
     /// <param name="GuildId">The Id of the Guild</param>
     public record UpdateGuildConfigRequest(ulong GuildId) : IRequest<GuildConfig?>
@@ -20,7 +24,7 @@ namespace Silk.Core.Data.MediatR.Guilds
         public ulong? VerificationRoleId { get; init; }
 
         public bool? ScanInvites { get; init; }
-        public bool? GreetMembers { get; init; }
+        public GreetingOption? GreetingOption { get; init; }
         public bool? BlacklistWords { get; init; }
         public bool? BlacklistInvites { get; init; }
         public bool? LogMembersJoining { get; init; }
@@ -38,6 +42,9 @@ namespace Silk.Core.Data.MediatR.Guilds
         public List<Invite>? AllowedInvites { get; init; }
         public List<DisabledCommand>? DisabledCommands { get; init; }
         public List<SelfAssignableRole>? SelfAssignableRoles { get; init; }
+
+        public RoleMenu RoleMenu { get; init; }
+
         public List<InfractionStep>? InfractionSteps { get; init; }
         //public List<BlacklistedWord>? BlacklistedWords { get; init; }
     }
@@ -57,12 +64,14 @@ namespace Silk.Core.Data.MediatR.Guilds
         public async Task<GuildConfig?> Handle(UpdateGuildConfigRequest request, CancellationToken cancellationToken)
         {
             GuildConfig config = await _db.GuildConfigs
+                .Include(c => c.RoleMenuMenus)
+                .Include(c => c.InfractionSteps)
                 .Include(c => c.SelfAssignableRoles)
                 .AsSplitQuery()
                 .FirstOrDefaultAsync(g => g.GuildId == request.GuildId, cancellationToken);
 
             config.MuteRoleId = request.MuteRoleId ?? config.MuteRoleId;
-            config.GreetMembers = request.GreetMembers ?? config.GreetMembers;
+            config.GreetingOption = request.GreetingOption ?? config.GreetingOption;
             config.LoggingChannel = request.LoggingChannel ?? config.LoggingChannel;
             config.GreetingChannel = request.GreetingChannelId ?? config.GreetingChannel;
             config.VerificationRole = request.VerificationRoleId ?? config.VerificationRole;
@@ -70,7 +79,7 @@ namespace Silk.Core.Data.MediatR.Guilds
             config.ScanInvites = request.ScanInvites ?? config.ScanInvites;
             config.BlacklistWords = request.BlacklistWords ?? config.BlacklistWords;
             config.BlacklistInvites = request.BlacklistInvites ?? config.BlacklistInvites;
-            config.LogMemberJoing = request.LogMembersJoining ?? config.LogMemberJoing;
+            config.LogMemberJoins = request.LogMembersJoining ?? config.LogMemberJoins;
             config.UseAggressiveRegex = request.UseAggressiveRegex ?? config.UseAggressiveRegex;
             config.WarnOnMatchedInvite = request.WarnOnMatchedInvite ?? config.WarnOnMatchedInvite;
             config.DeleteMessageOnMatchedInvite = request.DeleteOnMatchedInvite ?? config.DeleteMessageOnMatchedInvite;

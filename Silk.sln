@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -7,11 +6,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Silk.Extensions", "src\Silk
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8ED19367-810B-4E78-B1B5-6B81E9E01718}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Core.Discord", "src\Silk.Core.Discord\Silk.Core.Discord.csproj", "{B3A34F01-C1B1-4081-B19A-E24821105683}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Core", "src\Silk.Core\Silk.Core.csproj", "{B3A34F01-C1B1-4081-B19A-E24821105683}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Dashboard", "src\Silk.Dashboard\Silk.Dashboard.csproj", "{EDCE6CD1-EA9F-4912-9C18-ACE8CD56E27B}"
 EndProject
@@ -30,8 +28,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Core.Data.Tests", "tests\Silk.Core.Data.Tests\Silk.Core.Data.Tests.csproj", "{F1BC2CDC-1423-4E14-AD38-5B6E0ACC06BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Shared", "src\Silk.Shared\Silk.Shared.csproj", "{D9EBB59E-3DC5-4ACD-8CF1-CAF7FAE910A8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silk.Core.Logic", "src\Silk.Core.Logic\Silk.Core.Logic.csproj", "{C73E2D73-B557-4E45-9785-0418BC631C48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,14 +109,6 @@ Global
 		{D9EBB59E-3DC5-4ACD-8CF1-CAF7FAE910A8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D9EBB59E-3DC5-4ACD-8CF1-CAF7FAE910A8}.Release|x64.ActiveCfg = Release|Any CPU
 		{D9EBB59E-3DC5-4ACD-8CF1-CAF7FAE910A8}.Release|x64.Build.0 = Release|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Debug|x64.Build.0 = Debug|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Release|x64.ActiveCfg = Release|Any CPU
-		{C73E2D73-B557-4E45-9785-0418BC631C48}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,6 +126,5 @@ Global
 		{A75A61EE-D0BD-4536-B6C6-26A26D8062F2} = {FE9BF140-0795-4CBE-A5A1-E37A36081587}
 		{F1BC2CDC-1423-4E14-AD38-5B6E0ACC06BF} = {C9E5F7D9-B12E-4A1A-949C-FDFF08A46A67}
 		{D9EBB59E-3DC5-4ACD-8CF1-CAF7FAE910A8} = {FE9BF140-0795-4CBE-A5A1-E37A36081587}
-		{C73E2D73-B557-4E45-9785-0418BC631C48} = {FE9BF140-0795-4CBE-A5A1-E37A36081587}
 	EndGlobalSection
 EndGlobal

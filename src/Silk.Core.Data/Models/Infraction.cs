@@ -16,14 +16,24 @@ namespace Silk.Core.Data.Models
         public ulong GuildId { get; set; }
 
         /// <summary>
+        /// The guild-specific case Id of this infraction.
+        /// </summary>
+        public int CaseNumber { get; set; }
+
+        /// <summary>
         ///     The guild this infraction was given on.
         /// </summary>
         public Guild Guild { get; set; }
+        
+        /// <summary>
+        /// The User this infraction was given to. 
+        /// </summary>
+        public User User { get; set; }
 
         /// <summary>
         ///     The reason this infraction was given. Infractions added by Auto-Mod will be prefixed with "[AUTO-MOD]".
         /// </summary>
-        public string Reason { get; set; } // Why was this infraction given
+        public string Reason { get; set; } = "Not given."; // Why was this infraction given
 
         /// <summary>
         ///     Whether this infraction has been processed.
@@ -46,16 +56,25 @@ namespace Silk.Core.Data.Models
         public DateTime InfractionTime { get; set; } //When it happened
 
         /// <summary>
-        ///     The type of infraction. Infractions of type <see cref="Models.InfractionType.SoftBan" /> and <see cref="Models.InfractionType.Mute" /> are loaded
-        ///     into memory upon startup.
+        /// When this infraction was last changed.
+        /// </summary>
+        public DateTime? LastUpdated { get; set; }
+        
+        /// <summary>
+        ///     The type of infraction.
         /// </summary>
         public InfractionType InfractionType { get; set; } //What happened
+        
+        /// <summary>
+        /// Whether this was initially intented to be a strike.
+        /// </summary>
+        public bool EscalatedFromStrike { get; set; }
 
         /// <summary>
         ///     Whether this is an active infraction and/or this infraction counts toward any auto-incrementing severity of infractions.
         ///     Infraction will still hold on the user's record but is not held against them if set to false.
         /// </summary>
-        public bool HeldAgainstUser { get; set; } // Used for infraction service to determine whether to escalate or not //
+        public bool HeldAgainstUser { get; set; } = true; // Used for infraction service to determine whether to escalate or not //
 
         /// <summary>
         ///     When this infraction is set to expire. Resolves to null

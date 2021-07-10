@@ -7,30 +7,46 @@
         ///     swill take appropriate action dependent on the number of strikes the user has.
         ///     When used by the warn command, after 5 strikes, Silk! will ask to elevate to the next appropriate action depending on the guild configuration.
         /// </summary>
-        Warn,
+        Strike,
         /// <summary>
         ///     Signifies the user was kicked when this infraction was added.
         /// </summary>
         Kick,
         /// <summary>
-        ///     Signifies that the user was muted, either temporarily or indefinetly. These infractions are not held against the user.
+        /// A mute. Indefintite or temporary. 
         /// </summary>
         Mute,
         /// <summary>
-        ///     Signifies the user was muted temporarily by auto-mod. These infractions are held against the user.
+        /// A mute given by the AutoMod system.
         /// </summary>
         AutoModMute,
         /// <summary>
-        ///     Signifies the user was banned temporarily.
+        /// A temporary ban.
         /// </summary>
         SoftBan,
         /// <summary>
-        ///     Signifies the user was banned indefinitely.
+        /// An permenant ban.
         /// </summary>
         Ban,
         /// <summary>
-        ///     Used for <see cref="InfractionStep" />. This value signifies that no action will be taken against the user for this infraction.
+        /// Used for auto-mod config. If this is the current infraction level, it is swapped for <see cref="Note"/>.
         /// </summary>
-        Ignore
+        Ignore,
+        /// <summary>
+        /// The user was unmuted.
+        /// </summary>
+        Unmute,
+        /// <summary>
+        /// A note on a user's infraction history.
+        /// </summary>
+        Note,
+        /// <summary>
+        /// This user was pardoned from an infraction.
+        /// </summary>
+        Pardon,
+        /// <summary>
+        /// The user was unbanned from a server.
+        /// </summary>
+        Unban
     }
 }

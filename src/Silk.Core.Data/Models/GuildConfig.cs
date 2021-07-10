@@ -23,6 +23,11 @@ namespace Silk.Core.Data.Models
         public ulong MuteRoleId { get; set; }
 
         /// <summary>
+        /// The trigger to greet new members, if any. Default to DoNotGreet.
+        /// </summary>
+        public GreetingOption GreetingOption { get; set; } = GreetingOption.DoNotGreet;
+        
+        /// <summary>
         ///     Whether to send a greeting message in the server when someone joins.
         /// </summary>
         public bool GreetMembers { get; set; }
@@ -78,9 +83,14 @@ namespace Silk.Core.Data.Models
         public List<SelfAssignableRole> SelfAssignableRoles { get; set; } = new();
 
         /// <summary>
-        /// A list of roles that can be obtained via reacting to a message.
+        ///     A list of roles that can be obtained via reacting to a message.
         /// </summary>
-        public List<ReactionRole> ReactionRoles { get; set; } = new();
+        public List<RoleMenu> RoleMenus { get; set; } = new();
+
+        /// <summary>
+        /// A list of role menu menus; allowing a user to select different categories of roles.
+        /// </summary>
+        public List<RoleMenuMenu> RoleMenuMenus { get; set; } = new();
 
         #region AutoMod/Moderation
 
@@ -103,7 +113,11 @@ namespace Silk.Core.Data.Models
         /// <summary>
         ///     Whether to log members joining or not.
         /// </summary>
-        public bool LogMemberJoing { get; set; }
+        public bool LogMemberJoins { get; set; }
+        /// <summary>
+        ///     Whether to log members leaving or not.
+        /// </summary>
+        public bool LogMemberLeaves { get; set; }
 
         /// <summary>
         ///     Blacklist certain invites.
@@ -125,7 +139,12 @@ namespace Silk.Core.Data.Models
         ///     Represents whether to match only discord.gg/ or all possible invite codes.
         /// </summary>
         public bool UseAggressiveRegex { get; set; }
-
+        
+        /// <summary>
+        /// Whether or not infractions will escalate based on the number of infractions a user has.
+        /// </summary>
+        public bool AutoEscalateInfractions { get; set; }
+        
         /// <summary>
         ///     Whether to automatically dehoist members. Guild must be premium.
         /// </summary>

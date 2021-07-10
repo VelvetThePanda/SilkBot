@@ -4,7 +4,7 @@ using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Silk.Core.Data.MediatR.Guilds;
-using Silk.Core.Discord.Services;
+using Silk.Core.Services.Data;
 using Xunit;
 
 namespace Silk.Core.Tests.Services
@@ -28,7 +28,7 @@ namespace Silk.Core.Tests.Services
                 .ReturnsAsync(It.IsAny<GetGuildConfigRequest>())
                 .Verifiable("uHHHH");
 
-            _configService = new(_cache.Object, _mediator.Object);
+            _configService = new(_cache.Object, _mediator.Object, new CacheUpdaterService());
         }
 
         [Fact]
