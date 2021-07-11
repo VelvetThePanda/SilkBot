@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AspNet.Security.OAuth.Discord" Version="5.0.4" />
+        <PackageReference Include="AspNet.Security.OAuth.Discord" Version="5.0.8" />
         <PackageReference Include="Blazored.Toast" Version="3.1.2" />
         <PackageReference Include="BlazorPro.Spinkit" Version="1.2.0" />
-        <PackageReference Include="DSharpPlus.Rest" Version="4.0.0-rc2" />
+        <PackageReference Include="DSharpPlus.Rest" Version="4.0.1" />
         <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.5">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.7">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
