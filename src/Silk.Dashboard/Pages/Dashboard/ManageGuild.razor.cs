@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Blazored.Toast.Services;
 using DSharpPlus;
@@ -20,6 +21,8 @@ namespace Silk.Dashboard.Pages.Dashboard
         [Inject] private IToastService ToastService { get; set; }
 
         [Parameter] public string GuildId { get; set; }
+
+        private readonly GreetingOption[] _greetingOptions = Enum.GetValues<GreetingOption>();
 
         private DiscordGuild _guild;
         private GuildConfig _config;
@@ -62,7 +65,7 @@ namespace Silk.Dashboard.Pages.Dashboard
             return new UpdateGuildConfigRequest(guildId)
             {
                 MuteRoleId = _config.MuteRoleId,
-                GreetMembers = _config.GreetMembers,
+                GreetingOption = _config.GreetingOption,
                 LoggingChannel = _config.LoggingChannel,
                 GreetingChannelId = _config.GreetingChannel,
                 VerificationRoleId = _config.VerificationRole,
@@ -70,7 +73,7 @@ namespace Silk.Dashboard.Pages.Dashboard
                 ScanInvites = _config.ScanInvites,
                 BlacklistWords = _config.BlacklistWords,
                 BlacklistInvites = _config.BlacklistInvites,
-                LogMembersJoining = _config.LogMemberJoing,
+                LogMembersJoining = _config.LogMemberJoins,
                 UseAggressiveRegex = _config.UseAggressiveRegex,
                 WarnOnMatchedInvite = _config.WarnOnMatchedInvite,
                 DeleteOnMatchedInvite = _config.DeleteMessageOnMatchedInvite,

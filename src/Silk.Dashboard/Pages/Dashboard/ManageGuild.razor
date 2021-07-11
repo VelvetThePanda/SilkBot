@@ -1,6 +1,7 @@
 ﻿@page "/Dashboard/ManageGuild/{GuildId}"
 @attribute [Authorize]
 
+@using Silk.Core.Data.Models
 @inherits ComponentBase
 
 @* 
@@ -42,7 +43,15 @@ else
 
                 <div class="form-group mb-2">
                     <label for="GreetMembers">Greet Members</label>
-                    <InputCheckbox id="GreetMembers" @bind-Value="_config.GreetMembers" />
+                    
+                    @* Todo: Stylize Select component *@
+                    <select class="form-select" @bind="_config.GreetingOption">
+                        @foreach (var go in _greetingOptions)
+                        {
+                            @* Todo: Add Description attribute to Enum *@
+                            <option value="@go">@go</option>
+                        }
+                    </select>
                 </div>
 
                 <div class="form-group mb-3">

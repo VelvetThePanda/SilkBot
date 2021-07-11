@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Silk.Core.Data;
 using Silk.Dashboard.Models;
 using Silk.Dashboard.Services;
+using Silk.Shared.Configuration;
 
 namespace Silk.Dashboard
 {
@@ -40,9 +41,12 @@ namespace Silk.Dashboard
 
             services.AddScoped<IDashboardTokenStorageService, DashboardTokenStorageService>();
             services.AddScoped<DiscordRestClientService>();
+            
+            /* Todo: Consolidate Adding SilkConfigurationOptions to common location? */
+            services.Configure<SilkConfigurationOptions>(Configuration.GetSection(SilkConfigurationOptions.SectionKey));
+            var silkConfig = Configuration.GetSection(SilkConfigurationOptions.SectionKey).Get<SilkConfigurationOptions>();
 
-            services.AddDbContext<GuildContext>(o =>
-                o.UseNpgsql(Configuration.GetConnectionString("core")));
+            services.AddDbContext<GuildContext>(o => o.UseNpgsql(silkConfig.Persistence.ToString()));
 
             services.AddMediatR(typeof(GuildContext));
 
@@ -52,30 +56,26 @@ namespace Silk.Dashboard
                     opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     opt.DefaultChallengeScheme = DiscordAuthenticationDefaults.AuthenticationScheme;
                 })
-                .AddOAuth<DiscordAuthenticationOptions, DashboardDiscordAuthenticationHandler>(
-                    DiscordAuthenticationDefaults.AuthenticationScheme, 
-                    DiscordAuthenticationDefaults.DisplayName, 
-                    opt =>
+                .AddDiscord(opt =>
+                {
+                    opt.ClientId = silkConfig.Discord.ClientId;
+                    opt.ClientSecret = silkConfig.Discord.ClientSecret;
+
+                    opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
+
+                    opt.Events.OnCreatingTicket = context =>
                     {
-                        /* Todo: Change UserSecrets Keys to "ClientId and ClientSecret" */
-                        opt.ClientId = Configuration["Discord:AppId"];
-                        opt.ClientSecret = Configuration["Discord:AppSecret"];
+                        var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
+                        var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.GetTokenValue("expires_at"));
+                        tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
+                        return Task.CompletedTask;
+                    };
 
-                        opt.CallbackPath = DiscordAuthenticationDefaults.CallbackPath;
+                    opt.Scope.Add("guilds");
 
-                        opt.Events.OnCreatingTicket = context =>
-                        {
-                            var tokenStorageService = context.HttpContext.RequestServices.GetRequiredService<IDashboardTokenStorageService>();
-                            var tokenExpiration = DiscordOAuthToken.GetAccessTokenExpiration(context.Properties.GetTokenValue("expires_at"));
-                            tokenStorageService.SetToken(new DiscordOAuthToken(context.AccessToken, context.RefreshToken, tokenExpiration));
-                            return Task.CompletedTask;
-                        };
-
-                        opt.Scope.Add("guilds");
-
-                        opt.UsePkce = true;
-                        opt.SaveTokens = true;
-                    })
+                    opt.UsePkce = true;
+                    opt.SaveTokens = true;
+                })
                 .AddCookie(opts => { });
         }
 
